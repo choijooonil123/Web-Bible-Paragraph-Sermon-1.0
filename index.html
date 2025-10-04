@@ -171,6 +171,15 @@
     function status(msg){ statusEl.textContent = msg; }
     function escapeHtml(s){ return (s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
     function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
+    function sanitizeBody(text){
+      return (text||'')
+        .replace(/\r\n/g, '\n')
+        .split('\n')
+        .map(line => line.replace(/\s+$/,''))
+        .filter(line => line.trim() !== '')
+        .join('\n');
+    }
+
     function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
     // ==== 인라인 제목 편집 ====
@@ -809,7 +818,8 @@
     // 저장 핸들러(컨텍스트/설교 모두 처리)
     el('saveSermon').onclick = ()=>{
       const title = sermonTitle.value.trim() || '(제목 없음)';
-      const body  = sermonBody.value.trim();
+      const body  = sanitizeBody(sermonBody.value);
+
       const imgs  = [...sermonThumbs.querySelectorAll('img')].map(img=>img.src);
       const date  = todayStr();
 
@@ -1035,13 +1045,27 @@
     
         function updateCounter(){ const text=(b.value||'').trim(); const chars=text.length; const words=text?text.split(/\\s+/).length:0; counter.textContent=chars+'자 · '+words+'단어'; }
         b.addEventListener('input', updateCounter); updateCounter();
-    
-        function doSave(){
-          opener.postMessage({ type:'sermon-save',
-            title:(t.value||'').trim()||'(제목 없음)',
-            body:(b.value||'').trim(), images:collectImages()
-          }, '*'); window.close();
+
+        function sanitizeBody(text){
+          return (text||'')
+            .replace(/\r\n/g, '\n')                // CRLF → LF 통일
+            .split('\n')
+            .map(line => line.replace(/\s+$/,''))  // 각 줄의 끝 공백 제거
+            .filter(line => line.trim() !== '')    // 빈 줄 제거
+            .join('\n');
         }
+
+        function doSave(){
+          const cleanBody = sanitizeBody(b.value);
+          opener.postMessage({
+            type:'sermon-save',
+            title:(t.value||'').trim()||'(제목 없음)',
+            body: cleanBody,
+            images: collectImages()
+          }, '*');
+          window.close();
+        }
+
         function doDelete(){ if(confirm('이 설교를 삭제할까요?')){ opener.postMessage({ type:'sermon-delete' }, '*'); window.close(); } }
     
         sBtn.addEventListener('click', doSave); dBtn.addEventListener('click', doDelete); xBtn.addEventListener('click', ()=>window.close());
