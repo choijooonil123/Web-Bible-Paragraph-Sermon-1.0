@@ -902,12 +902,13 @@
     });
 
     /* --------- Sermon Editor Popup (Slim) --------- */
+    /* --------- Sermon Editor Popup (Beauty, Complete) --------- */
     function openSermonEditorWindow(idx){
       const map = getSermonMap();
       const arr = map[CURRENT.paraId] || [];
       const it  = arr[idx];
       if(!it){ alert('편집할 설교를 찾을 수 없습니다.'); return; }
-
+    
       const meta = {
         paraId: CURRENT.paraId,
         ref: `${CURRENT.book} ${CURRENT.chap}장`,
@@ -916,151 +917,172 @@
         images: it.images || [],
         date: it.date || ''
       };
-
+    
       const w = window.open('', '_blank', 'width=1100,height=800');
       if(!w){ alert('팝업이 차단되었습니다. 브라우저 팝업을 허용해주세요.'); return; }
-
+    
+      // ==== 팝업 문서 작성 ====
       w.document.open();
       w.document.write(`<!DOCTYPE html><html lang="ko">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>설교 편집</title>
-  <style>
-    :root{ --bg:#0f1115; --panel:#161922; --text:#e6e8ef; --muted:#9aa0ab; --border:#252a36; --accent:#6ea8fe; --danger:#ff6b6b; }
-    *{ box-sizing:border-box }
-    html,body{ height:100% }
-    body{
-      margin:0; background:var(--bg); color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;
-      display:grid; grid-template-rows:56px 1fr 56px; gap:8px;
-    }
-    header, footer{
-      display:flex; align-items:center; gap:8px; padding:8px 12px;
-      background:var(--panel); border-bottom:1px solid var(--border);
-    }
-    footer{ border-top:1px solid var(--border); border-bottom:none }
-    header strong{ font-size:14px }
-    main{ padding:0 12px 12px }
-    .row{ display:grid; gap:8px; margin-bottom:10px }
-    input[type="text"], textarea{
-      width:100%; background:#161922; color:#e6e8ef; border:1px solid #2a3040; border-radius:8px; padding:10px 12px;
-    }
-    textarea{ min-height:55vh; resize:vertical }
-    .thumbs{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px }
-    .thumbs img{ width:96px; height:96px; object-fit:cover; border-radius:8px; border:1px solid var(--border) }
-    .muted{ color:var(--muted) }
-    button{
-      background:color-mix(in hsl, var(--panel) 65%, black 10%); color:var(--text);
-      border:1px solid var(--border); border-radius:8px; padding:8px 12px; cursor:pointer;
-    }
-    button:hover{ border-color:color-mix(in hsl, var(--border) 80%, var(--accent) 20%) }
-    .primary{
-      background:linear-gradient(180deg,color-mix(in srgb, var(--accent) 75%, white 10%), color-mix(in srgb, var(--accent) 75%, black 20%));
-      border-color:color-mix(in srgb, var(--accent) 70%, black 10%);
-    }
-    .danger{ border-color:var(--danger); color:#ffd7d7; background:transparent }
-    .grow{ flex:1 1 auto }
-  </style>
-</head>
-<body>
-  <header>
-    <strong>설교 편집</strong>
-    <span class="muted" id="ref"></span>
-    <div class="grow"></div>
-    <button id="x">닫기</button>
-  </header>
-
-  <main>
-    <div class="row">
-      <input id="t" placeholder="설교 제목" />
-      <textarea id="b" placeholder="설교 본문(텍스트)"></textarea>
-    </div>
-    <div class="row">
-      <input type="file" id="imgs" accept="image/*" multiple />
-      <div class="thumbs" id="th"></div>
-    </div>
-  </main>
-
-  <footer>
-    <span class="muted" id="date"></span>
-    <div class="grow"></div>
-    <button class="danger" id="d">삭제</button>
-    <button class="primary" id="s">저장</button>
-  </footer>
-
-  <script>
-    const meta = ${JSON.stringify(meta)};
-    const t = document.getElementById('t');
-    const b = document.getElementById('b');
-    const th = document.getElementById('th');
-    const imgs = document.getElementById('imgs');
-    const ref = document.getElementById('ref');
-    const date = document.getElementById('date');
-
-    ref.textContent = '— ' + meta.ref;
-    date.textContent = meta.date ? ('최근 저장: ' + meta.date) : '';
-    t.value = meta.title; b.value = meta.body;
-    (meta.images||[]).forEach(src=>{ const im=new Image(); im.src=src; th.appendChild(im); });
-
-    function fileToDataURL(file){
-      return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
-    }
-    imgs.addEventListener('change', async ()=>{
-      const files=[...imgs.files||[]];
-      for(const f of files){ const data=await fileToDataURL(f); const im=new Image(); im.src=data; th.appendChild(im); }
-      imgs.value='';
-    });
-
-    // 저장
-    document.getElementById('s').onclick = ()=>{
-      const images=[...th.querySelectorAll('img')].map(i=>i.src);
-      opener.postMessage({ type:'sermon-save', title:(t.value||'').trim()||'(제목 없음)', body:(b.value||'').trim(), images }, '*');
-      window.close();
-    };
-
-    // 삭제
-    document.getElementById('d').onclick = ()=>{
-      if(confirm('삭제할까요?')){
-        opener.postMessage({ type:'sermon-delete' }, '*');
-        window.close();
-      }
-    };
-
-    // 닫기
-    document.getElementById('x').onclick = ()=> window.close();
-  <\/script>
-</body>
-</html>`);
+    <head>
+      <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>설교 편집</title>
+      <style>
+        :root{
+          --bg:#0f1115; --panel:#161922; --text:#e9ecf3; --muted:#9aa0ab;
+          --edge:#242a38; --accent:#7fb4ff; --accent-2:#4ea1ff; --danger:#ff6b6b;
+          --shadow:0 10px 30px rgba(0,0,0,.35);
+        }
+        *{ box-sizing:border-box } html,body{ height:100% }
+        body{
+          margin:0; background:var(--bg); color:var(--text);
+          font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;
+          display:grid; grid-template-rows:auto 1fr auto; gap:12px;
+        }
+        header,footer{
+          background:linear-gradient(180deg, color-mix(in srgb,var(--panel) 92%, #000 0%), color-mix(in srgb,var(--panel) 76%, #000 8%));
+          border:1px solid var(--edge); box-shadow:var(--shadow);
+          margin:12px; border-radius:14px; padding:10px 12px; display:flex; align-items:center; gap:10px;
+        }
+        header .title{ font-weight:800; font-size:14px;
+          background:linear-gradient(90deg,var(--accent),#c8e1ff);
+          -webkit-background-clip:text; background-clip:text; color:transparent;
+        }
+        header .ref{ color:var(--muted); font-size:13px } header .dot{ opacity:.35 }
+        main{ padding:0 12px 12px }
+        .card{ background:var(--panel); border:1px solid var(--edge); border-radius:16px; box-shadow:var(--shadow); padding:16px; display:grid; gap:14px; }
+        .field{ display:grid; gap:8px } .label{ color:var(--muted); font-size:12px }
+        .input,.textarea{
+          width:100%; background:#12151d; color:var(--text);
+          border:1px solid color-mix(in srgb, var(--edge) 80%, #000 20%);
+          border-radius:12px; padding:12px 14px; outline:none;
+          transition:border-color .15s, box-shadow .15s;
+        }
+        .input:focus,.textarea:focus{
+          border-color: color-mix(in srgb, var(--accent) 60%, #000 20%);
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent 75%);
+        }
+        .input.title{ font-size:18px; font-weight:800; padding:14px 16px; letter-spacing:.2px; }
+        .textarea{ min-height:46vh; line-height:1.65; border-radius:14px; resize:vertical; font-size:15px; }
+        .toolbar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; }
+        .left,.right{ display:flex; gap:8px; align-items:center; flex-wrap:wrap }
+        .chip{ padding:6px 10px; border:1px solid var(--edge); border-radius:999px; color:var(--muted);
+               background:color-mix(in srgb, var(--panel) 86%, #000 6%); font-size:12px; }
+        .count{ color:var(--muted); font-size:12px }
+        .thumbs{ display:flex; gap:10px; flex-wrap:wrap; margin-top:6px }
+        .thumb{ position:relative; width:108px; height:108px; border-radius:12px; overflow:hidden; border:1px solid var(--edge); background:#0b0e14; }
+        .thumb img{ width:100%; height:100%; object-fit:cover; display:block }
+        .thumb button{ position:absolute; inset:auto 6px 6px auto; border:1px solid var(--edge);
+                       background:rgba(0,0,0,.55); color:#ffd9d9; cursor:pointer; padding:4px 7px; border-radius:8px; font-size:12px; }
+        .btn{ background:color-mix(in srgb, var(--panel) 70%, #000 12%); color:var(--text);
+              border:1px solid var(--edge); border-radius:12px; padding:10px 14px; cursor:pointer; transition:border-color .15s, transform .02s; }
+        .btn:hover{ border-color:color-mix(in srgb, var(--accent) 40%, var(--edge) 60%) } .btn:active{ transform:translateY(1px) }
+        .btn.primary{ background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 78%, #fff 6%), color-mix(in srgb, #4ea1ff 80%, #000 15%));
+                      border-color:color-mix(in srgb, #4ea1ff 65%, #000 15%); color:#0b1220; font-weight:800; }
+        .btn.danger{ border-color:var(--danger); color:#ffdede; background:transparent }
+        .grow{ flex:1 1 auto } footer .hint{ color:var(--muted); font-size:12px }
+        @media (max-width:680px){ .textarea{ min-height:38vh } header,footer{ margin:10px } .btn{ padding:9px 12px } }
+      </style>
+    </head>
+    <body>
+      <header>
+        <div class="title">설교 편집</div><span class="dot">•</span><span class="ref" id="ref"></span>
+        <div class="grow"></div><button class="btn" id="x">닫기(ESC)</button>
+      </header>
+    
+      <main>
+        <div class="card">
+          <div class="field">
+            <div class="label">제목</div>
+            <input id="t" class="input title" placeholder="설교 제목" />
+          </div>
+    
+          <div class="toolbar">
+            <div class="left">
+              <label class="btn">이미지 추가 <input type="file" id="imgs" accept="image/*" multiple style="display:none"></label>
+              <span class="chip" id="date"></span>
+            </div>
+            <div class="right"><span class="count" id="counter">0자 · 0단어</span></div>
+          </div>
+    
+          <textarea id="b" class="textarea" placeholder="설교 본문을 입력하세요. (Ctrl+S 저장)"></textarea>
+          <div class="thumbs" id="th"></div>
+        </div>
+      </main>
+    
+      <footer>
+        <span class="hint">단축키: <b>Ctrl+S</b> 저장 · <b>Esc</b> 닫기</span>
+        <div class="grow"></div>
+        <button class="btn danger" id="d">삭제</button>
+        <button class="btn primary" id="s">저장</button>
+      </footer>
+    
+      <script>
+        // === 초기 데이터 ===
+        const meta = ${JSON.stringify(meta)};
+        const t = document.getElementById('t'), b = document.getElementById('b'), th = document.getElementById('th');
+        const imgs = document.getElementById('imgs'), ref = document.getElementById('ref'), date = document.getElementById('date');
+        const sBtn = document.getElementById('s'), dBtn = document.getElementById('d'), xBtn = document.getElementById('x'), counter = document.getElementById('counter');
+    
+        ref.textContent = meta.ref || ''; date.textContent = meta.date ? ('최근 저장: ' + meta.date) : '';
+        t.value = meta.title || ''; b.value = meta.body || ''; (meta.images||[]).forEach(src=> addThumb(src));
+    
+        function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
+        function addThumb(src){ const w=document.createElement('div'); w.className='thumb'; w.innerHTML='<img><button type="button">삭제</button>'; w.querySelector('img').src=src; w.querySelector('button').onclick=()=>w.remove(); th.appendChild(w); }
+        function collectImages(){ return [...th.querySelectorAll('img')].map(i=>i.src); }
+    
+        imgs.addEventListener('change', async ()=>{ for(const f of [...imgs.files||[]]) addThumb(await fileToDataURL(f)); imgs.value=''; });
+    
+        function updateCounter(){ const text=(b.value||'').trim(); const chars=text.length; const words=text?text.split(/\\s+/).length:0; counter.textContent=chars+'자 · '+words+'단어'; }
+        b.addEventListener('input', updateCounter); updateCounter();
+    
+        function doSave(){
+          opener.postMessage({ type:'sermon-save',
+            title:(t.value||'').trim()||'(제목 없음)',
+            body:(b.value||'').trim(), images:collectImages()
+          }, '*'); window.close();
+        }
+        function doDelete(){ if(confirm('이 설교를 삭제할까요?')){ opener.postMessage({ type:'sermon-delete' }, '*'); window.close(); } }
+    
+        sBtn.addEventListener('click', doSave); dBtn.addEventListener('click', doDelete); xBtn.addEventListener('click', ()=>window.close());
+        window.addEventListener('keydown', (e)=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); doSave(); } if(e.key==='Escape'){ e.preventDefault(); window.close(); } });
+      <\/script>
+    </body>
+    </html>`);
       w.document.close();
-
-    const onMsg = (ev)=>{
-      // 이 팝업(w) 에서 온 메시지만 받는다(파일/file://에서도 OK)
-      if (ev.source !== w) return;
-        const data = ev.data||{};
+    
+      // ==== 부모창 메시지 수신 (이 팝업에서 오는 것만 처리) ====
+      const onMsg = (ev) => {
+        // file://에서도 동작하도록 origin 체크는 완화, 그래도 타입 필수
+        const data = ev?.data || {};
         if(!data.type) return;
-
+    
         const map = getSermonMap();
         const arr = map[CURRENT.paraId] || [];
-        if(data.type==='sermon-save'){
-          const date = todayStr();
+    
+        if(data.type === 'sermon-save'){
+          const now = new Date();
+          const date = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
           if(arr[idx]){
             arr[idx] = { ...arr[idx], title: data.title, body: data.body, images: data.images, date };
           }
           map[CURRENT.paraId] = arr; setSermonMap(map);
           status('설교가 저장되었습니다.');
           renderSermonList();
-          window.removeEventListener('message', onMsg);
+          window.removeEventListener('message', onMsg); // 정리
         }
-        if(data.type==='sermon-delete'){
-          if(arr[idx]) arr.splice(idx,1);
+    
+        if(data.type === 'sermon-delete'){
+          if(arr[idx]) arr.splice(idx, 1);
           map[CURRENT.paraId] = arr; setSermonMap(map);
           status('설교가 삭제되었습니다.');
           renderSermonList();
-          window.removeEventListener('message', onMsg);
+          window.removeEventListener('message', onMsg); // 정리
         }
       };
       window.addEventListener('message', onMsg);
     }
+
   </script>
 </body>
 </html>
