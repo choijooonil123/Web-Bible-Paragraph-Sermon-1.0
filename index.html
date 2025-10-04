@@ -989,7 +989,7 @@
   </footer>
 
   <script>
-    const meta = ${'${JSON.stringify(meta)}'};
+    const meta = ${JSON.stringify(meta)};
     const t = document.getElementById('t');
     const b = document.getElementById('b');
     const th = document.getElementById('th');
@@ -1014,14 +1014,14 @@
     // 저장
     document.getElementById('s').onclick = ()=>{
       const images=[...th.querySelectorAll('img')].map(i=>i.src);
-      opener.postMessage({ type:'sermon-save', title:(t.value||'').trim()||'(제목 없음)', body:(b.value||'').trim(), images }, location.origin);
+      opener.postMessage({ type:'sermon-save', title:(t.value||'').trim()||'(제목 없음)', body:(b.value||'').trim(), images }, '*');
       window.close();
     };
 
     // 삭제
     document.getElementById('d').onclick = ()=>{
       if(confirm('삭제할까요?')){
-        opener.postMessage({ type:'sermon-delete' }, location.origin);
+        opener.postMessage({ type:'sermon-delete' }, '*');
         window.close();
       }
     };
@@ -1033,8 +1033,9 @@
 </html>`);
       w.document.close();
 
-      const onMsg = (ev)=>{
-        if(ev.origin !== location.origin) return;
+    const onMsg = (ev)=>{
+      // 이 팝업(w) 에서 온 메시지만 받는다(파일/file://에서도 OK)
+      if (ev.source !== w) return;
         const data = ev.data||{};
         if(!data.type) return;
 
