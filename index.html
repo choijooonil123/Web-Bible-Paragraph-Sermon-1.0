@@ -892,36 +892,49 @@
       const imgs  = [...sermonThumbs.querySelectorAll('img')].map(img=>img.src);
       const now   = new Date();
       const date  = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-
+    
       const para  = BIBLE.books[CURRENT.book][CURRENT.chap].paras[CURRENT.paraIdx];
       const pid   = `${CURRENT.book}|${CURRENT.chap}|${para.ref}`;
-      const ctxType = sermonEditor.dataset.ctxType || '';
-
-      // 컨텍스트 문서 저장 (요약 포함)
-      if(ctxType){
-        const key = ctxType==='unit'       ? STORAGE_UNIT_CTX
-                  : ctxType==='whole'      ? STORAGE_WHOLE_CTX
-                  : ctxType==='commentary' ? STORAGE_COMMENTARY
-                  :                          STORAGE_SUMMARY;
-        const map = getDocMap(key);
+    
+      // === 컨텍스트 문서 저장 (주석/요약/맥락) ===
+      const ctxType    = (sermonEditor.dataset.ctxType || '').trim();  // 'commentary' 기대
+      const storageKey = getCtxStorageKey(ctxType);
+    
+      if(storageKey){
+        const map = getDocMap(storageKey);
         map[pid] = { title, body, images: imgs, date };
-        setDocMap(key, map);
-
+        setDocMap(storageKey, map);
+    
+        // 편집 모드 해제 & 모달 닫기
         sermonEditor.dataset.ctxType = '';
-        modalWrap.style.display = 'none'; modalWrap.setAttribute('aria-hidden','true');
-        status(`저장됨: ${title}`);
+        modalWrap.style.display = 'none';
+        modalWrap.setAttribute('aria-hidden','true');
+    
+        status(`저장됨: [${ctxType==='commentary' ? '주석' :
+                          ctxType==='summary'    ? '내용요약' :
+                          ctxType==='unit'       ? '단위성경속 맥락' :
+                                                   '전체성경속 맥락'}] ${title}`);
         return;
       }
-
-      // 설교 저장
+    
+      // === 일반 설교 저장 ===
       const map = getSermonMap();
       const arr = map[CURRENT.paraId] || [];
       const editing = sermonEditor.dataset.editing;
-      if(editing!==''){ const i=+editing; if(arr[i]) arr[i] = {...arr[i], title, body, images:imgs, date}; }
-      else { arr.unshift({ id: crypto.randomUUID(), title, body, images: imgs, date }); }
+    
+      if(editing!==''){
+        const i = +editing;
+        if(arr[i]) arr[i] = {...arr[i], title, body, images: imgs, date};
+      }else{
+        arr.unshift({ id: crypto.randomUUID(), title, body, images: imgs, date });
+      }
       map[CURRENT.paraId] = arr; setSermonMap(map);
-      sermonEditor.style.display = 'none'; renderSermonList(); status('설교가 저장되었습니다.');
+    
+      sermonEditor.style.display = 'none';
+      renderSermonList();
+      status('설교가 저장되었습니다.');
     };
+
 
     sermonImages.addEventListener('change', async ()=>{
       const files = [...sermonImages.files||[]];
@@ -969,7 +982,18 @@
         downloadBibleJSON();
       }
     });
-        
+
+    // === kind → 정확한 로컬스토리지 키 매핑 ===
+    function getCtxStorageKey(kind){
+      switch((kind||'').trim()){
+        case 'unit':       return STORAGE_UNIT_CTX;
+        case 'whole':      return STORAGE_WHOLE_CTX;
+        case 'commentary': return STORAGE_COMMENTARY; // ★ 주석
+        case 'summary':    return STORAGE_SUMMARY;    // 내용요약
+        default:           return null;
+      }
+    }
+    
     function getDocMap(storageKey){ try{ return JSON.parse(localStorage.getItem(storageKey)||'{}'); }catch{ return {}; } }
     function setDocMap(storageKey, obj){ localStorage.setItem(storageKey, JSON.stringify(obj)); }
 
