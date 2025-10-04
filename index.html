@@ -4,9 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Web Bible – Paragraph Sermon (Final Slim)</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
   <style>
     :root{
       --bg:#0f1115; --panel:#161922; --text:#e6e8ef; --muted:#9aa0ab;
@@ -14,8 +11,7 @@
     }
     *{ box-sizing:border-box } html,body{ height:100% }
     body{
-      margin:0;
-      font-family:"Jua", system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;
       background:var(--bg); color:var(--text);
       display:grid; grid-template-rows:64px 1fr; gap:10px;
     }
@@ -97,12 +93,6 @@
   <header>
     <h1>Web Bible – Paragraph Sermon</h1>
 
-    <div class="pill">
-      <button id="btnExport">내보내기</button>
-      <button id="btnImport">가져오기</button>
-      <input id="importFile" type="file" accept="application/json" style="display:none" />
-    </div>
-    
     <div class="pill">
       <button id="btnSaveJSON">JSON 저장</button>
     </div>
@@ -310,119 +300,6 @@
         btnSaveJSON.addEventListener('click', downloadBibleJSON);
       }
     })();
-
-    /* --------- Export / Import (localStorage backup) --------- */
-    
-    // 백업/복원 대상 키들
-    const EXPORT_KEYS = [
-      STORAGE_SERMON,     // 설교들
-      STORAGE_UNIT_CTX,   // 단위성경속 맥락
-      STORAGE_WHOLE_CTX,  // 전체성경속 맥락
-      STORAGE_COMMENTARY, // 주석
-      STORAGE_SUMMARY     // 내용요약
-    ];
-    
-    // 공통: 안전 파싱
-    function safeParse(json, fallback=null){
-      try{ return JSON.parse(json); }catch(_){ return fallback; }
-    }
-    
-    // 내보내기: 한 파일로 저장
-    function exportLocalData(){
-      const payload = {
-        app: 'wbps',
-        v: 1,
-        exportedAt: new Date().toISOString(),
-        data: {}
-      };
-    
-      EXPORT_KEYS.forEach(k=>{
-        const raw = localStorage.getItem(k);
-        payload.data[k] = raw ? safeParse(raw, null) : null;
-      });
-    
-      // 파일 이름: wbps-data-backup-YYYYMMDD.json
-      const now = new Date();
-      const fname = `wbps-data-backup-${
-        now.getFullYear()
-      }${String(now.getMonth()+1).padStart(2,'0')}${
-        String(now.getDate()).padStart(2,'0')
-      }.json`;
-    
-      const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = fname;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
-    
-      status('로컬 자료를 내보냈습니다.');
-    }
-    
-    // 가져오기: JSON 파일 읽어 merge/덮어쓰기
-    async function importLocalDataFromFile(file){
-      if(!file) return;
-      const text = await file.text();
-      let parsed;
-      try{
-        parsed = JSON.parse(text);
-      }catch(e){
-        alert('가져오기 실패: JSON 형식이 아닙니다.');
-        return;
-      }
-    
-      if(!parsed || parsed.app!=='wbps' || !parsed.data){
-        // 다른 툴로 백업한 순수 키-값 모음도 허용 (data 없고 최상위에 키들만 있는 경우)
-        const maybePlain = (!!parsed && !parsed.app && !parsed.data);
-        if(!maybePlain){
-          alert('가져오기 실패: 인식할 수 없는 백업 포맷입니다.');
-          return;
-        }
-      }
-    
-      // 머지 정책:
-      // - 백업에 해당 키가 있으면 **그 값으로 덮어쓰기** (가장 단순하고 예측 가능)
-      // - null이면 건너뜀
-      const source = parsed.data || parsed; // plain key-dump 대응
-      let touched = 0;
-    
-      EXPORT_KEYS.forEach(k=>{
-        if(Object.prototype.hasOwnProperty.call(source, k) && source[k] != null){
-          localStorage.setItem(k, JSON.stringify(source[k]));
-          touched++;
-        }
-      });
-    
-      if(!touched){
-        alert('가져올 데이터가 없습니다.');
-        return;
-      }
-    
-      status(`가져오기 완료: ${touched}개 항목 갱신됨`);
-      // 열려 있던 모달/리스트가 있다면 화면을 최신 상태로 갱신
-      try{ renderSermonList(); }catch(_){}
-    }
-    
-    // 버튼 바인딩
-    (function bindExportImport(){
-      const btnExport = document.getElementById('btnExport');
-      const btnImport = document.getElementById('btnImport');
-      const importFile = document.getElementById('importFile');
-    
-      if(btnExport){
-        btnExport.addEventListener('click', exportLocalData);
-      }
-      if(btnImport && importFile){
-        btnImport.addEventListener('click', ()=> importFile.click());
-        importFile.addEventListener('change', ()=>{
-          const f = importFile.files && importFile.files[0];
-          if(!f) return;
-          importLocalDataFromFile(f).finally(()=> importFile.value = '');
-        });
-      }
-    })();
-
     
     async function tryFetchJSON(path){ const res = await fetch(path, {cache:'no-store'}); if(!res.ok) throw 0; return await res.json(); }
 
@@ -896,49 +773,36 @@
       const imgs  = [...sermonThumbs.querySelectorAll('img')].map(img=>img.src);
       const now   = new Date();
       const date  = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-    
+
       const para  = BIBLE.books[CURRENT.book][CURRENT.chap].paras[CURRENT.paraIdx];
       const pid   = `${CURRENT.book}|${CURRENT.chap}|${para.ref}`;
-    
-      // === 컨텍스트 문서 저장 (주석/요약/맥락) ===
-      const ctxType    = (sermonEditor.dataset.ctxType || '').trim();  // 'commentary' 기대
-      const storageKey = getCtxStorageKey(ctxType);
-    
-      if(storageKey){
-        const map = getDocMap(storageKey);
+      const ctxType = sermonEditor.dataset.ctxType || '';
+
+      // 컨텍스트 문서 저장 (요약 포함)
+      if(ctxType){
+        const key = ctxType==='unit'       ? STORAGE_UNIT_CTX
+                  : ctxType==='whole'      ? STORAGE_WHOLE_CTX
+                  : ctxType==='commentary' ? STORAGE_COMMENTARY
+                  :                          STORAGE_SUMMARY;
+        const map = getDocMap(key);
         map[pid] = { title, body, images: imgs, date };
-        setDocMap(storageKey, map);
-    
-        // 편집 모드 해제 & 모달 닫기
+        setDocMap(key, map);
+
         sermonEditor.dataset.ctxType = '';
-        modalWrap.style.display = 'none';
-        modalWrap.setAttribute('aria-hidden','true');
-    
-        status(`저장됨: [${ctxType==='commentary' ? '주석' :
-                          ctxType==='summary'    ? '내용요약' :
-                          ctxType==='unit'       ? '단위성경속 맥락' :
-                                                   '전체성경속 맥락'}] ${title}`);
+        modalWrap.style.display = 'none'; modalWrap.setAttribute('aria-hidden','true');
+        status(`저장됨: ${title}`);
         return;
       }
-    
-      // === 일반 설교 저장 ===
+
+      // 설교 저장
       const map = getSermonMap();
       const arr = map[CURRENT.paraId] || [];
       const editing = sermonEditor.dataset.editing;
-    
-      if(editing!==''){
-        const i = +editing;
-        if(arr[i]) arr[i] = {...arr[i], title, body, images: imgs, date};
-      }else{
-        arr.unshift({ id: crypto.randomUUID(), title, body, images: imgs, date });
-      }
+      if(editing!==''){ const i=+editing; if(arr[i]) arr[i] = {...arr[i], title, body, images:imgs, date}; }
+      else { arr.unshift({ id: crypto.randomUUID(), title, body, images: imgs, date }); }
       map[CURRENT.paraId] = arr; setSermonMap(map);
-    
-      sermonEditor.style.display = 'none';
-      renderSermonList();
-      status('설교가 저장되었습니다.');
+      sermonEditor.style.display = 'none'; renderSermonList(); status('설교가 저장되었습니다.');
     };
-
 
     sermonImages.addEventListener('change', async ()=>{
       const files = [...sermonImages.files||[]];
@@ -986,18 +850,7 @@
         downloadBibleJSON();
       }
     });
-
-    // === kind → 정확한 로컬스토리지 키 매핑 ===
-    function getCtxStorageKey(kind){
-      switch((kind||'').trim()){
-        case 'unit':       return STORAGE_UNIT_CTX;
-        case 'whole':      return STORAGE_WHOLE_CTX;
-        case 'commentary': return STORAGE_COMMENTARY; // ★ 주석
-        case 'summary':    return STORAGE_SUMMARY;    // 내용요약
-        default:           return null;
-      }
-    }
-    
+        
     function getDocMap(storageKey){ try{ return JSON.parse(localStorage.getItem(storageKey)||'{}'); }catch{ return {}; } }
     function setDocMap(storageKey, obj){ localStorage.setItem(storageKey, JSON.stringify(obj)); }
 
@@ -1031,7 +884,7 @@
     html,body{ height:100% }
     body{
       margin:0; background:var(--bg); color:var(--text);
-      font-family:"Jua", system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;
       display:grid; grid-template-rows:56px 1fr 56px; gap:8px;
     }
     header, footer{
