@@ -925,7 +925,8 @@
         title: it.title || '',
         body:  it.body  || '',
         images: it.images || [],
-        date: it.date || ''
+        date: it.date || '',
+        sermonId: it.id
       };
     
       const w = window.open('', '_blank', 'width=1100,height=800');
@@ -1059,6 +1060,8 @@
           const cleanBody = sanitizeBody(b.value);
           opener.postMessage({
             type:'sermon-save',
+            paraId: meta.paraId,      // ⬅ 추가
+            sermonId: meta.sermonId,  // ⬅ 추가
             title:(t.value||'').trim()||'(제목 없음)',
             body: cleanBody,
             images: collectImages()
@@ -1066,7 +1069,16 @@
           window.close();
         }
 
-        function doDelete(){ if(confirm('이 설교를 삭제할까요?')){ opener.postMessage({ type:'sermon-delete' }, '*'); window.close(); } }
+        function doDelete(){
+          if(confirm('이 설교를 삭제할까요?')){
+            opener.postMessage({
+              type: 'sermon-delete',
+              paraId: meta.paraId,     // ⬅ 추가
+              sermonId: meta.sermonId  // ⬅ 추가
+            }, '*');
+            window.close();
+          }
+        }
     
         sBtn.addEventListener('click', doSave); dBtn.addEventListener('click', doDelete); xBtn.addEventListener('click', ()=>window.close());
         window.addEventListener('keydown', (e)=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); doSave(); } if(e.key==='Escape'){ e.preventDefault(); window.close(); } });
@@ -1076,32 +1088,58 @@
       w.document.close();
     
       // ==== 부모창 메시지 수신 (이 팝업에서 오는 것만 처리) ====
+      // ==== 부모창 메시지 수신 (이 팝업에서 오는 것만 처리) ====
       const onMsg = (ev) => {
-        // file://에서도 동작하도록 origin 체크는 완화, 그래도 타입 필수
         const data = ev?.data || {};
-        if(!data.type) return;
-    
+        if (!data.type) return;
+      
         const map = getSermonMap();
-        const arr = map[CURRENT.paraId] || [];
-    
-        if(data.type === 'sermon-save'){
+      
+        // 1) 대상 단락 pid: 메시지(paraId)를 우선 사용
+        const pid = data.paraId || CURRENT.paraId;
+        if (!pid) { console.warn('No paraId provided'); return; }
+      
+        const arr = map[pid] || [];
+      
+        // 2) 대상 설교 index: sermonId로 탐색
+        let idxById = -1;
+        if (data.sermonId) {
+          idxById = arr.findIndex(x => x && x.id === data.sermonId);
+        }
+      
+        if (data.type === 'sermon-save') {
           const now = new Date();
           const date = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-          if(arr[idx]){
-            arr[idx] = { ...arr[idx], title: data.title, body: data.body, images: data.images, date };
+      
+          if (idxById >= 0) {
+            // 기존 항목 갱신
+            arr[idxById] = { ...arr[idxById], title: data.title, body: data.body, images: data.images, date };
+          } else {
+            // 안전장치: 못 찾으면 새로 추가
+            arr.unshift({ id: crypto.randomUUID(), title: data.title, body: data.body, images: data.images, date });
           }
-          map[CURRENT.paraId] = arr; setSermonMap(map);
+      
+          map[pid] = arr;
+          setSermonMap(map);
           status('설교가 저장되었습니다.');
-          renderSermonList();
-          window.removeEventListener('message', onMsg); // 정리
+      
+          // 현재 보고있는 단락과 같을 때만 목록 리렌더
+          if (CURRENT.paraId === pid) renderSermonList();
+      
+          window.removeEventListener('message', onMsg);
         }
-    
-        if(data.type === 'sermon-delete'){
-          if(arr[idx]) arr.splice(idx, 1);
-          map[CURRENT.paraId] = arr; setSermonMap(map);
-          status('설교가 삭제되었습니다.');
-          renderSermonList();
-          window.removeEventListener('message', onMsg); // 정리
+      
+        if (data.type === 'sermon-delete') {
+          if (idxById >= 0) {
+            arr.splice(idxById, 1);
+            map[pid] = arr;
+            setSermonMap(map);
+            status('설교가 삭제되었습니다.');
+            if (CURRENT.paraId === pid) renderSermonList();
+          } else {
+            console.warn('sermonId not found to delete');
+          }
+          window.removeEventListener('message', onMsg);
         }
       };
       window.addEventListener('message', onMsg);
