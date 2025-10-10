@@ -567,16 +567,33 @@
     }
     function speakVerseItemInScope(item, scope, onend){
       if(!READER.synth) return;
+    
       const u = new SpeechSynthesisUtterance(String(item.text));
       applyVoice(u);
+    
+      // onend가 드물게 안 들어오는 크롬/OS 버그 대비: 안전 종료 플래그 + 타이머
+      let done = false;
+      const safeEnd = ()=>{ if(done) return; done = true; onend(); };
+    
       u.onstart = ()=>{
         clearReadingHighlight(scope);
         const line = scope.querySelector(`.pline[data-verse="${item.verse}"]`);
         if(line){ line.classList.add('reading'); line.scrollIntoView({block:'center', behavior:'smooth'}); }
+        // 시작 시 이전 워치독 제거
+        if (READER._wd){ clearTimeout(READER._wd); READER._wd = null; }
+        // 대략 길이에 비례해 종료 보조 타이머 설정 (문자당 65ms 기준, 최소 800ms)
+        const base = Math.max(800, Math.round(item.text.length * 65));
+        // rate가 빠르면 실제 재생시간이 짧으므로 보정
+        const rate = u.rate || 1;
+        const estimate = Math.max(600, Math.round(base / rate)) + 1200;
+        READER._wd = setTimeout(safeEnd, estimate);
       };
-      u.onend = onend;
+      u.onend   = safeEnd;
+      u.onerror = safeEnd;
+    
       READER.synth.speak(u);
     }
+
     function toggleSpeakInline(book, chap, idx, paraDetailsEl, btnEl){
       if(!READER.synth) return alert('이 브라우저는 음성합성을 지원하지 않습니다.');
       const sameScope = READER.playing && READER.scope === paraDetailsEl;
@@ -606,9 +623,11 @@
     function stopSpeakInline(){
       READER.playing = false;
       try{ READER.synth && READER.synth.cancel(); }catch(e){}
+      if (READER._wd){ clearTimeout(READER._wd); READER._wd = null; }
       if(READER.scope) clearReadingHighlight(READER.scope);
       updateInlineSpeakBtn(); READER.scope = null; READER.btn = null;
     }
+
     function updateInlineSpeakBtn(){ if(READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독'; }
 
     function goToNextParagraphInline(book, chap, idx){
