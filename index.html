@@ -213,12 +213,15 @@
         const para = BIBLE?.books?.[book]?.[chap]?.paras?.[idx];
         if(!para) return;
         para.title = newTitle;
+    
+        // 여기서 ch → chap 로 수정
         const s = document.querySelector(
-          `summary .ptitle[data-book="${CSS.escape(String(book))}"][data-ch="${CSS.escape(String(ch))}"][data-idx="${CSS.escape(String(idx))}"]`
+          `summary .ptitle[data-book="${CSS.escape(String(book))}"][data-ch="${CSS.escape(String(chap))}"][data-idx="${CSS.escape(String(idx))}"]`
         );
         if(s) s.textContent = newTitle;
       }catch(_){}
     }
+
 
     // ==== JSON 내보내기(본문) ====
     function downloadBibleJSON(){
