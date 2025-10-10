@@ -601,28 +601,45 @@
       if(!READER.synth) return alert('이 브라우저는 음성합성을 지원하지 않습니다.');
       const sameScope = READER.playing && READER.scope === paraDetailsEl;
       if(READER.playing && sameScope){ stopSpeakInline(); return; }
-
+    
       const cb = paraDetailsEl.querySelector('.keepReading');
       READER.continuous = !!(cb && cb.checked);
-
+    
       READER.q = buildQueueFrom(book, chap, idx);
       READER.idx = 0; READER.playing = true; READER.scope = paraDetailsEl; READER.btn = btnEl;
-      bindKeepReading(READER.scope); updateInlineSpeakBtn(); playNextInQueueInline(book, chap, idx);
+    
+      // ★ 추가: 혹시 남아있을 큐/잔여 발화를 지움
+      try{ READER.synth.cancel(); }catch(e){}
+    
+      bindKeepReading(READER.scope);
+      updateInlineSpeakBtn();
+      playNextInQueueInline(book, chap, idx);
     }
+
     function playNextInQueueInline(book, chap, idx){
       if(!READER.playing) return;
       if(READER.idx >= READER.q.length){
         if(READER.continuous && goToNextParagraphInline(book, chap, idx)){
           READER.q = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
-          READER.idx = 0; bindKeepReading(READER.scope);
-          playNextInQueueInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
+          READER.idx = 0;
+          bindKeepReading(READER.scope);
+    
+          // ★ 변경: 크롬이 onend 직후 speak를 종종 무시해서 아주 짧게 지연
+          setTimeout(()=> {
+            // 혹시 이전 발화가 남아 있으면 한 번 더 정리
+            try{ READER.synth.cancel(); }catch(e){}
+            playNextInQueueInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
+          }, 120);
+    
           return;
         }
-        stopSpeakInline(); return;
+        stopSpeakInline();
+        return;
       }
       const item = READER.q[READER.idx];
       speakVerseItemInScope(item, READER.scope, ()=>{ READER.idx++; playNextInQueueInline(book, chap, idx); });
     }
+
     function stopSpeakInline(){
       READER.playing = false;
       try{ READER.synth && READER.synth.cancel(); }catch(e){}
