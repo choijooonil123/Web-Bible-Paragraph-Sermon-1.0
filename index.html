@@ -96,12 +96,6 @@
     <div class="pill">
       <button id="btnSaveJSON">JSON 저장</button>
     </div>
-
-    <div class="pill">
-      <button id="btnExportAll">내보내기</button>
-      <input id="importFile" type="file" accept="application/json" style="display:none">
-      <button id="btnImportAll">가져오기</button>
-    </div>
     
     <div class="pill">
       <span class="muted">음성</span>
@@ -152,8 +146,6 @@
           <div class="grow"></div>
           <button id="editorSpeak" class="primary">낭독</button>
           <button id="saveSermon" class="primary">저장</button>
-          <!-- ★ 컨텍스트 문서 삭제 버튼(주석/요약/맥락) -->
-          <button id="deleteCtxDoc" style="border:1px solid var(--danger);color:#ffd7d7;background:transparent;display:none">삭제</button>
           <button id="cancelEdit">취소</button>
         </div>
         <div class="thumbs" id="sermonThumbs"></div>
@@ -171,40 +163,36 @@
     function status(msg){ statusEl.textContent = msg; }
     function escapeHtml(s){ return (s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
     function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
-    function sanitizeBody(text){
-      return (text||'')
-        .replace(/\r\n/g, '\n')
-        .split('\n')
-        .map(line => line.replace(/\s+$/,''))
-        .filter(line => line.trim() !== '')
-        .join('\n');
-    }
-
-    function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
     // ==== 인라인 제목 편집 ====
     function startInlineTitleEdit(el, book, chap, idx){
       const old = el.textContent.trim();
-      el.setAttribute('contenteditable','plaintext-only');
-      el.spellcheck = false;
+    
+      el.setAttribute('contenteditable','plaintext-only'); // 지원 브라우저에서 서식 없는 편집
+      el.spellcheck = false;                                // 원치 않는 맞춤법/자동수정 방지
+
       el.classList.add('editing');
       el.focus();
+    
+      // 전체 선택
       const sel = window.getSelection();
       const range = document.createRange();
       range.selectNodeContents(el);
-      sel.removeAllRanges(); sel.addRange(range);
-
+      sel.removeAllRanges();
+      sel.addRange(range);
+    
       function finish(commit){
         el.removeAttribute('contenteditable');
         el.classList.remove('editing');
         document.removeEventListener('keydown', onKey, true);
         el.removeEventListener('blur', onBlur);
+    
         if(commit){
           const newTitle = el.textContent.trim() || '(제목 없음)';
-          updateParaTitle(book, chap, idx, newTitle);
+          updateParaTitle(book, chap, idx, newTitle); // 메모리 갱신
           status('단락 제목이 변경되었습니다. (Ctrl+Shift+S로 JSON 저장 가능)');
         }else{
-          el.textContent = old;
+          el.textContent = old; // 취소 시 원복
           status('제목 편집이 취소되었습니다.');
         }
       }
@@ -213,6 +201,7 @@
         if(e.key === 'Escape'){ e.preventDefault(); finish(false); }
       }
       function onBlur(){ finish(true); }
+    
       document.addEventListener('keydown', onKey, true);
       el.addEventListener('blur', onBlur);
     }
@@ -223,6 +212,8 @@
         const para = BIBLE?.books?.[book]?.[chap]?.paras?.[idx];
         if(!para) return;
         para.title = newTitle;
+    
+        // 이미 열린 summary도 안전하게 갱신
         const s = document.querySelector(
           `summary .ptitle[data-book="${CSS.escape(String(book))}"][data-ch="${CSS.escape(String(ch))}"][data-idx="${CSS.escape(String(idx))}"]`
         );
@@ -230,61 +221,43 @@
       }catch(_){}
     }
     
-    // ==== JSON 내보내기(본문) ====
+    // ==== JSON 내보내기(다운로드) ====
     function downloadBibleJSON(){
       if(!BIBLE){ alert('BIBLE 데이터가 없습니다.'); return; }
       const blob = new Blob([JSON.stringify(BIBLE, null, 2)], {type:'application/json'});
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'bible-paragraphs.json';
-      document.body.appendChild(a); a.click();
+      a.download = 'bible-paragraphs.json'; // 통일된 이름으로 저장
+      document.body.appendChild(a);
+      a.click();
       setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
       status('수정된 JSON을 다운로드했습니다.');
     }
-
-    // ==== (신규) 전체 데이터 백업/복원 ====
-    const STORAGE_SERMON      = 'wbps.sermons.v4';
-    const STORAGE_UNIT_CTX    = 'wbps.ctx.unit.v1';
-    const STORAGE_WHOLE_CTX   = 'wbps.ctx.whole.v1';
-    const STORAGE_COMMENTARY  = 'wbps.ctx.comm.v1';
-    const STORAGE_SUMMARY     = 'wbps.ctx.summary.v1';
-    const VOICE_CHOICE_KEY    = 'wbps.tts.choice.v2';
-
-    function exportAllData(){
-      const keys = [
-        STORAGE_SERMON, STORAGE_UNIT_CTX, STORAGE_WHOLE_CTX,
-        STORAGE_COMMENTARY, STORAGE_SUMMARY, VOICE_CHOICE_KEY
-      ];
-      const payload = { __wbps:1, date: todayStr(), items:{} };
-      keys.forEach(k=> payload.items[k] = localStorage.getItem(k) ?? null);
-
-      const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
-      const a = document.createElement('a');
-      const ts = new Date(); const tss = `${ts.getFullYear()}${String(ts.getMonth()+1).padStart(2,'0')}${String(ts.getDate()).padStart(2,'0')}-${String(ts.getHours()).padStart(2,'0')}${String(ts.getMinutes()).padStart(2,'0')}`;
-      a.href = URL.createObjectURL(blob);
-      a.download = `wbps-backup-${tss}.json`;
-      document.body.appendChild(a); a.click();
-      setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
-      status('전체 데이터를 내보냈습니다.');
-    }
-
-    async function importAllData(file){
+    
+    /* (선택) 파일 저장 다이얼로그로 직접 저장 - Chromium 계열 브라우저에서만
+    let BIBLE_FILE_HANDLE = null;
+    async function saveBibleJSONWithPicker(){
+      if(!BIBLE){ alert('BIBLE 데이터가 없습니다.'); return; }
       try{
-        const text = await file.text();
-        const json = JSON.parse(text);
-        if(!json || json.__wbps!==1 || !json.items){ alert('백업 파일 형식이 아닙니다.'); return; }
-        if(!confirm('이 백업을 가져와서 현재 기기의 데이터를 덮어쓸까요?')) return;
-        Object.entries(json.items).forEach(([k,v])=>{
-          if(v===null || v===undefined) localStorage.removeItem(k);
-          else localStorage.setItem(k, v);
-        });
-        status('가져오기가 완료되었습니다. 페이지를 새로고침하면 반영됩니다.');
+        if(!BIBLE_FILE_HANDLE){
+          BIBLE_FILE_HANDLE = await window.showSaveFilePicker({
+            suggestedName: 'bible-paragraphs.json',
+            types: [{ description: 'JSON', accept: {'application/json':['.json']} }]
+          });
+        }
+        const wr = await BIBLE_FILE_HANDLE.createWritable();
+        await wr.write(new Blob([JSON.stringify(BIBLE, null, 2)], {type:'application/json'}));
+        await wr.close();
+        status('로컬 파일로 저장 완료 (File System Access API)');
       }catch(e){
-        console.error(e); alert('가져오기 중 오류가 발생했습니다.');
+        console.warn(e);
+        alert('파일 저장이 취소되었거나 브라우저가 지원하지 않습니다.\n대안: JSON 다운로드 버튼을 사용하세요.');
       }
     }
+    */
+
     
-    /* --------- Refs --------- */
+    /* --------- Refs / Keys --------- */
     const treeEl = el('tree'), statusEl = el('status');
     const voiceSelect = el('voiceSelect'), testVoiceBtn = el('testVoice');
     const rateCtl = el('rateCtl'), pitchCtl = el('pitchCtl'), voiceHint = el('voiceHint');
@@ -294,6 +267,13 @@
     const sermonThumbs = el('sermonThumbs'), sermonImages = el('sermonImages');
     const editorSpeakBtn = el('editorSpeak');
     const modalFooterNew = el('modalFooterNew');
+
+    const STORAGE_SERMON      = 'wbps.sermons.v4';
+    const STORAGE_UNIT_CTX    = 'wbps.ctx.unit.v1';
+    const STORAGE_WHOLE_CTX   = 'wbps.ctx.whole.v1';
+    const STORAGE_COMMENTARY  = 'wbps.ctx.comm.v1';
+    const STORAGE_SUMMARY     = 'wbps.ctx.summary.v1';   // 내용요약
+    const VOICE_CHOICE_KEY    = 'wbps.tts.choice.v2';
 
     let BIBLE = null;
     let CURRENT = { book:null, chap:null, paraIdx:null, paraId:null };
@@ -313,16 +293,12 @@
       await setupVoices();
     })();
 
-    // 버튼 바인딩
-    (function bindButtons(){
+    // JSON 저장 버튼 핸들러 연결 (버튼이 있는 경우에만)
+    (function bindSaveButton(){
       const btnSaveJSON = document.getElementById('btnSaveJSON');
-      if (btnSaveJSON) btnSaveJSON.addEventListener('click', downloadBibleJSON);
-      el('btnExportAll').onclick = exportAllData;
-      el('btnImportAll').onclick = ()=> el('importFile').click();
-      el('importFile').addEventListener('change', (e)=>{
-        const f = e.target.files?.[0]; if(!f) return;
-        importAllData(f).finally(()=>{ e.target.value=''; });
-      });
+      if (btnSaveJSON) {
+        btnSaveJSON.addEventListener('click', downloadBibleJSON);
+      }
     })();
     
     async function tryFetchJSON(path){ const res = await fetch(path, {cache:'no-store'}); if(!res.ok) throw 0; return await res.json(); }
@@ -425,17 +401,6 @@
       synth.speak(u);
     }
 
-    /* --------- kind → storage key --------- */
-    function getCtxStorageKey(kind){
-      switch((kind||'').trim()){
-        case 'unit':       return STORAGE_UNIT_CTX;
-        case 'whole':      return STORAGE_WHOLE_CTX;
-        case 'commentary': return STORAGE_COMMENTARY; // 주석
-        case 'summary':    return STORAGE_SUMMARY;    // 요약
-        default:           return null;
-      }
-    }
-
     /* --------- Tree --------- */
     function buildTree(){
       treeEl.innerHTML = '';
@@ -476,15 +441,19 @@
             `;
 
             const titleEl = sum.querySelector('.ptitle');
-
-            // 더블클릭 시 인라인 편집, summary 토글 방지
+            
+            // --- 단락 타이틀 클릭/더블클릭 제어 ---
+            
+            // A) 더블클릭 → summary 토글 막고 인라인 편집 시작
+            // A) 더블클릭 → summary 토글 막고 인라인 편집 시작
             titleEl.addEventListener('dblclick', (e)=>{
-              e.preventDefault(); e.stopPropagation();
-              detPara.open = true;
+              e.preventDefault();
+              e.stopPropagation();
+              detPara.open = true; // 닫히려는 기본동작 방지
               startInlineTitleEdit(titleEl, bookName, ch, idx);
             }, true);
-
-            // summary 자체에서도 타이틀 더블클릭/편집중 토글 방지
+            
+            // C) summary 레벨 가드: 편집 중이거나, 타이틀에 대한 "더블클릭"인 경우만 차단
             function guardSummary(ev){
               const isEditing = titleEl.isContentEditable;
               const dblOnTitle = (ev.type === 'dblclick' && ev.target === titleEl);
@@ -497,6 +466,9 @@
               sum.addEventListener(type, guardSummary, true);
             });
 
+
+
+            // 2) 편집 중(혹은 제목 클릭 시) summary가 열리고 닫히는 기본동작을 차단
             detPara.appendChild(sum);
 
             const body = document.createElement('div');
@@ -675,8 +647,6 @@
     /* --------- Sermon / Context Editors --------- */
     function getSermonMap(){ try{ return JSON.parse(localStorage.getItem(STORAGE_SERMON)||'{}'); }catch{ return {}; } }
     function setSermonMap(o){ localStorage.setItem(STORAGE_SERMON, JSON.stringify(o)); }
-    function getDocMap(storageKey){ try{ return JSON.parse(localStorage.getItem(storageKey)||'{}'); }catch{ return {}; } }
-    function setDocMap(storageKey, obj){ localStorage.setItem(storageKey, JSON.stringify(obj)); }
 
     function openSermonModal(){
       if(!CURRENT.paraId){ const openPara = treeEl.querySelector('details.para[open]'); if(!openPara) return; }
@@ -701,18 +671,18 @@
         kind==='commentary' ? '주석' :
                               '내용요약';
 
-      const storageKey = getCtxStorageKey(kind);
-      const map = getDocMap(storageKey);
-      let doc = map[pid] || {
+      const key =
+        kind==='unit'       ? STORAGE_UNIT_CTX :
+        kind==='whole'      ? STORAGE_WHOLE_CTX :
+        kind==='commentary' ? STORAGE_COMMENTARY :
+                              STORAGE_SUMMARY;
+
+      const map = getDocMap(key);
+      const doc = map[pid] || {
         title: `${titlePrefix} — ${para.title||para.ref}`,
         body:  (kind==='summary' ? '핵심 내용을 간결하게 요약해 적어주세요.' : ''),
         images: [], date:''
       };
-
-      // 과거에 잘못 들어간 제목 교정(주석 화면에 ‘내용요약 — …’가 보일 때)
-      if (kind==='commentary' && /^내용요약\s*—\s*/.test(doc.title||'')){
-        doc.title = doc.title.replace(/^내용요약\s*—\s*/, '주석 — ');
-      }
 
       modalRef.textContent = `${CURRENT.book} ${CURRENT.chap}장 · ${para.title||para.ref} (${para.ref}) — ${titlePrefix}`;
       sermonList.innerHTML = '';
@@ -728,24 +698,6 @@
 
       sermonEditor.dataset.editing = '';
       sermonEditor.dataset.ctxType = kind;
-
-      // 주석/요약/맥락 문서 삭제 버튼 표시/바인딩
-      const delBtn = document.getElementById('deleteCtxDoc');
-      if (delBtn){
-        delBtn.style.display = '';
-        delBtn.onclick = ()=>{
-          const key = getCtxStorageKey(sermonEditor.dataset.ctxType||'');
-          if(!key) return;
-          const m = getDocMap(key);
-          if(!m[pid]){ alert('삭제할 문서가 없습니다.'); return; }
-          if(!confirm('이 문서를 삭제할까요?')) return;
-          delete m[pid]; setDocMap(key, m);
-          sermonEditor.dataset.ctxType = '';
-          modalWrap.style.display = 'none';
-          modalWrap.setAttribute('aria-hidden','true');
-          status(`${titlePrefix} 문서를 삭제했습니다.`);
-        };
-      }
     }
 
     function renderSermonList(){
@@ -815,53 +767,41 @@
       stopEditorSpeak(true);
     };
 
-    // 저장 핸들러(컨텍스트/설교 모두 처리)
     el('saveSermon').onclick = ()=>{
       const title = sermonTitle.value.trim() || '(제목 없음)';
-      const body  = sanitizeBody(sermonBody.value);
-
+      const body  = sermonBody.value.trim();
       const imgs  = [...sermonThumbs.querySelectorAll('img')].map(img=>img.src);
-      const date  = todayStr();
+      const now   = new Date();
+      const date  = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
 
       const para  = BIBLE.books[CURRENT.book][CURRENT.chap].paras[CURRENT.paraIdx];
       const pid   = `${CURRENT.book}|${CURRENT.chap}|${para.ref}`;
+      const ctxType = sermonEditor.dataset.ctxType || '';
 
-      // 컨텍스트 문서 저장(주석/요약/맥락)
-      const ctxType    = (sermonEditor.dataset.ctxType || '').trim();
-      const storageKey = getCtxStorageKey(ctxType);
-
-      if(storageKey){
-        const map = getDocMap(storageKey);
+      // 컨텍스트 문서 저장 (요약 포함)
+      if(ctxType){
+        const key = ctxType==='unit'       ? STORAGE_UNIT_CTX
+                  : ctxType==='whole'      ? STORAGE_WHOLE_CTX
+                  : ctxType==='commentary' ? STORAGE_COMMENTARY
+                  :                          STORAGE_SUMMARY;
+        const map = getDocMap(key);
         map[pid] = { title, body, images: imgs, date };
-        setDocMap(storageKey, map);
+        setDocMap(key, map);
 
         sermonEditor.dataset.ctxType = '';
-        modalWrap.style.display = 'none';
-        modalWrap.setAttribute('aria-hidden','true');
-
-        status(`저장됨: [${ctxType==='commentary' ? '주석' :
-                          ctxType==='summary'    ? '내용요약' :
-                          ctxType==='unit'       ? '단위성경속 맥락' :
-                                                   '전체성경속 맥락'}] ${title}`);
+        modalWrap.style.display = 'none'; modalWrap.setAttribute('aria-hidden','true');
+        status(`저장됨: ${title}`);
         return;
       }
 
-      // 일반 설교 저장
+      // 설교 저장
       const map = getSermonMap();
       const arr = map[CURRENT.paraId] || [];
       const editing = sermonEditor.dataset.editing;
-
-      if(editing!==''){
-        const i = +editing;
-        if(arr[i]) arr[i] = {...arr[i], title, body, images: imgs, date};
-      }else{
-        arr.unshift({ id: crypto.randomUUID(), title, body, images: imgs, date });
-      }
+      if(editing!==''){ const i=+editing; if(arr[i]) arr[i] = {...arr[i], title, body, images:imgs, date}; }
+      else { arr.unshift({ id: crypto.randomUUID(), title, body, images: imgs, date }); }
       map[CURRENT.paraId] = arr; setSermonMap(map);
-
-      sermonEditor.style.display = 'none';
-      renderSermonList();
-      status('설교가 저장되었습니다.');
+      sermonEditor.style.display = 'none'; renderSermonList(); status('설교가 저장되었습니다.');
     };
 
     sermonImages.addEventListener('change', async ()=>{
@@ -910,241 +850,171 @@
         downloadBibleJSON();
       }
     });
+        
+    function getDocMap(storageKey){ try{ return JSON.parse(localStorage.getItem(storageKey)||'{}'); }catch{ return {}; } }
+    function setDocMap(storageKey, obj){ localStorage.setItem(storageKey, JSON.stringify(obj)); }
 
     /* --------- Sermon Editor Popup (Slim) --------- */
-    /* --------- Sermon Editor Popup (Beauty, Complete) --------- */
     function openSermonEditorWindow(idx){
       const map = getSermonMap();
       const arr = map[CURRENT.paraId] || [];
       const it  = arr[idx];
       if(!it){ alert('편집할 설교를 찾을 수 없습니다.'); return; }
-    
+
       const meta = {
         paraId: CURRENT.paraId,
         ref: `${CURRENT.book} ${CURRENT.chap}장`,
         title: it.title || '',
         body:  it.body  || '',
         images: it.images || [],
-        date: it.date || '',
-        sermonId: it.id
+        date: it.date || ''
       };
-    
+
       const w = window.open('', '_blank', 'width=1100,height=800');
       if(!w){ alert('팝업이 차단되었습니다. 브라우저 팝업을 허용해주세요.'); return; }
-    
-      // ==== 팝업 문서 작성 ====
+
       w.document.open();
       w.document.write(`<!DOCTYPE html><html lang="ko">
-    <head>
-      <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-      <title>설교 편집</title>
-      <style>
-        :root{
-          --bg:#0f1115; --panel:#161922; --text:#e9ecf3; --muted:#9aa0ab;
-          --edge:#242a38; --accent:#7fb4ff; --accent-2:#4ea1ff; --danger:#ff6b6b;
-          --shadow:0 10px 30px rgba(0,0,0,.35);
-        }
-        *{ box-sizing:border-box } html,body{ height:100% }
-        body{
-          margin:0; background:var(--bg); color:var(--text);
-          font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;
-          display:grid; grid-template-rows:auto 1fr auto; gap:12px;
-        }
-        header,footer{
-          background:linear-gradient(180deg, color-mix(in srgb,var(--panel) 92%, #000 0%), color-mix(in srgb,var(--panel) 76%, #000 8%));
-          border:1px solid var(--edge); box-shadow:var(--shadow);
-          margin:12px; border-radius:14px; padding:10px 12px; display:flex; align-items:center; gap:10px;
-        }
-        header .title{ font-weight:800; font-size:14px;
-          background:linear-gradient(90deg,var(--accent),#c8e1ff);
-          -webkit-background-clip:text; background-clip:text; color:transparent;
-        }
-        header .ref{ color:var(--muted); font-size:13px } header .dot{ opacity:.35 }
-        main{ padding:0 12px 12px }
-        .card{ background:var(--panel); border:1px solid var(--edge); border-radius:16px; box-shadow:var(--shadow); padding:16px; display:grid; gap:14px; }
-        .field{ display:grid; gap:8px } .label{ color:var(--muted); font-size:12px }
-        .input,.textarea{
-          width:100%; background:#12151d; color:var(--text);
-          border:1px solid color-mix(in srgb, var(--edge) 80%, #000 20%);
-          border-radius:12px; padding:12px 14px; outline:none;
-          transition:border-color .15s, box-shadow .15s;
-        }
-        .input:focus,.textarea:focus{
-          border-color: color-mix(in srgb, var(--accent) 60%, #000 20%);
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent 75%);
-        }
-        .input.title{ font-size:18px; font-weight:800; padding:14px 16px; letter-spacing:.2px; }
-        .textarea{ min-height:46vh; line-height:1.65; border-radius:14px; resize:vertical; font-size:15px; }
-        .toolbar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; }
-        .left,.right{ display:flex; gap:8px; align-items:center; flex-wrap:wrap }
-        .chip{ padding:6px 10px; border:1px solid var(--edge); border-radius:999px; color:var(--muted);
-               background:color-mix(in srgb, var(--panel) 86%, #000 6%); font-size:12px; }
-        .count{ color:var(--muted); font-size:12px }
-        .thumbs{ display:flex; gap:10px; flex-wrap:wrap; margin-top:6px }
-        .thumb{ position:relative; width:108px; height:108px; border-radius:12px; overflow:hidden; border:1px solid var(--edge); background:#0b0e14; }
-        .thumb img{ width:100%; height:100%; object-fit:cover; display:block }
-        .thumb button{ position:absolute; inset:auto 6px 6px auto; border:1px solid var(--edge);
-                       background:rgba(0,0,0,.55); color:#ffd9d9; cursor:pointer; padding:4px 7px; border-radius:8px; font-size:12px; }
-        .btn{ background:color-mix(in srgb, var(--panel) 70%, #000 12%); color:var(--text);
-              border:1px solid var(--edge); border-radius:12px; padding:10px 14px; cursor:pointer; transition:border-color .15s, transform .02s; }
-        .btn:hover{ border-color:color-mix(in srgb, var(--accent) 40%, var(--edge) 60%) } .btn:active{ transform:translateY(1px) }
-        .btn.primary{ background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 78%, #fff 6%), color-mix(in srgb, #4ea1ff 80%, #000 15%));
-                      border-color:color-mix(in srgb, #4ea1ff 65%, #000 15%); color:#0b1220; font-weight:800; }
-        .btn.danger{ border-color:var(--danger); color:#ffdede; background:transparent }
-        .grow{ flex:1 1 auto } footer .hint{ color:var(--muted); font-size:12px }
-        @media (max-width:680px){ .textarea{ min-height:38vh } header,footer{ margin:10px } .btn{ padding:9px 12px } }
-      </style>
-    </head>
-    <body>
-      <header>
-        <div class="title">설교 편집</div><span class="dot">•</span><span class="ref" id="ref"></span>
-        <div class="grow"></div><button class="btn" id="x">닫기(ESC)</button>
-      </header>
-    
-      <main>
-        <div class="card">
-          <div class="field">
-            <div class="label">제목</div>
-            <input id="t" class="input title" placeholder="설교 제목" />
-          </div>
-    
-          <div class="toolbar">
-            <div class="left">
-              <label class="btn">이미지 추가 <input type="file" id="imgs" accept="image/*" multiple style="display:none"></label>
-              <span class="chip" id="date"></span>
-            </div>
-            <div class="right"><span class="count" id="counter">0자 · 0단어</span></div>
-          </div>
-    
-          <textarea id="b" class="textarea" placeholder="설교 본문을 입력하세요. (Ctrl+S 저장)"></textarea>
-          <div class="thumbs" id="th"></div>
-        </div>
-      </main>
-    
-      <footer>
-        <span class="hint">단축키: <b>Ctrl+S</b> 저장 · <b>Esc</b> 닫기</span>
-        <div class="grow"></div>
-        <button class="btn danger" id="d">삭제</button>
-        <button class="btn primary" id="s">저장</button>
-      </footer>
-    
-      <script>
-        // === 초기 데이터 ===
-        const meta = ${JSON.stringify(meta)};
-        const t = document.getElementById('t'), b = document.getElementById('b'), th = document.getElementById('th');
-        const imgs = document.getElementById('imgs'), ref = document.getElementById('ref'), date = document.getElementById('date');
-        const sBtn = document.getElementById('s'), dBtn = document.getElementById('d'), xBtn = document.getElementById('x'), counter = document.getElementById('counter');
-    
-        ref.textContent = meta.ref || ''; date.textContent = meta.date ? ('최근 저장: ' + meta.date) : '';
-        t.value = meta.title || ''; b.value = meta.body || ''; (meta.images||[]).forEach(src=> addThumb(src));
-    
-        function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
-        function addThumb(src){ const w=document.createElement('div'); w.className='thumb'; w.innerHTML='<img><button type="button">삭제</button>'; w.querySelector('img').src=src; w.querySelector('button').onclick=()=>w.remove(); th.appendChild(w); }
-        function collectImages(){ return [...th.querySelectorAll('img')].map(i=>i.src); }
-    
-        imgs.addEventListener('change', async ()=>{ for(const f of [...imgs.files||[]]) addThumb(await fileToDataURL(f)); imgs.value=''; });
-    
-        function updateCounter(){ const text=(b.value||'').trim(); const chars=text.length; const words=text?text.split(/\\s+/).length:0; counter.textContent=chars+'자 · '+words+'단어'; }
-        b.addEventListener('input', updateCounter); updateCounter();
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>설교 편집</title>
+  <style>
+    :root{ --bg:#0f1115; --panel:#161922; --text:#e6e8ef; --muted:#9aa0ab; --border:#252a36; --accent:#6ea8fe; --danger:#ff6b6b; }
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
+    body{
+      margin:0; background:var(--bg); color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;
+      display:grid; grid-template-rows:56px 1fr 56px; gap:8px;
+    }
+    header, footer{
+      display:flex; align-items:center; gap:8px; padding:8px 12px;
+      background:var(--panel); border-bottom:1px solid var(--border);
+    }
+    footer{ border-top:1px solid var(--border); border-bottom:none }
+    header strong{ font-size:14px }
+    main{ padding:0 12px 12px }
+    .row{ display:grid; gap:8px; margin-bottom:10px }
+    input[type="text"], textarea{
+      width:100%; background:#161922; color:#e6e8ef; border:1px solid #2a3040; border-radius:8px; padding:10px 12px;
+    }
+    textarea{ min-height:55vh; resize:vertical }
+    .thumbs{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px }
+    .thumbs img{ width:96px; height:96px; object-fit:cover; border-radius:8px; border:1px solid var(--border) }
+    .muted{ color:var(--muted) }
+    button{
+      background:color-mix(in hsl, var(--panel) 65%, black 10%); color:var(--text);
+      border:1px solid var(--border); border-radius:8px; padding:8px 12px; cursor:pointer;
+    }
+    button:hover{ border-color:color-mix(in hsl, var(--border) 80%, var(--accent) 20%) }
+    .primary{
+      background:linear-gradient(180deg,color-mix(in srgb, var(--accent) 75%, white 10%), color-mix(in srgb, var(--accent) 75%, black 20%));
+      border-color:color-mix(in srgb, var(--accent) 70%, black 10%);
+    }
+    .danger{ border-color:var(--danger); color:#ffd7d7; background:transparent }
+    .grow{ flex:1 1 auto }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>설교 편집</strong>
+    <span class="muted" id="ref"></span>
+    <div class="grow"></div>
+    <button id="x">닫기</button>
+  </header>
 
-        function sanitizeBody(text){
-          return (text||'')
-            .replace(/\r\n/g, '\n')                // CRLF → LF 통일
-            .split('\n')
-            .map(line => line.replace(/\s+$/,''))  // 각 줄의 끝 공백 제거
-            .filter(line => line.trim() !== '')    // 빈 줄 제거
-            .join('\n');
-        }
+  <main>
+    <div class="row">
+      <input id="t" placeholder="설교 제목" />
+      <textarea id="b" placeholder="설교 본문(텍스트)"></textarea>
+    </div>
+    <div class="row">
+      <input type="file" id="imgs" accept="image/*" multiple />
+      <div class="thumbs" id="th"></div>
+    </div>
+  </main>
 
-        function doSave(){
-          const cleanBody = sanitizeBody(b.value);
-          opener.postMessage({
-            type:'sermon-save',
-            paraId: meta.paraId,      // ⬅ 추가
-            sermonId: meta.sermonId,  // ⬅ 추가
-            title:(t.value||'').trim()||'(제목 없음)',
-            body: cleanBody,
-            images: collectImages()
-          }, '*');
-          window.close();
-        }
+  <footer>
+    <span class="muted" id="date"></span>
+    <div class="grow"></div>
+    <button class="danger" id="d">삭제</button>
+    <button class="primary" id="s">저장</button>
+  </footer>
 
-        function doDelete(){
-          if(confirm('이 설교를 삭제할까요?')){
-            opener.postMessage({
-              type: 'sermon-delete',
-              paraId: meta.paraId,     // ⬅ 추가
-              sermonId: meta.sermonId  // ⬅ 추가
-            }, '*');
-            window.close();
-          }
-        }
-    
-        sBtn.addEventListener('click', doSave); dBtn.addEventListener('click', doDelete); xBtn.addEventListener('click', ()=>window.close());
-        window.addEventListener('keydown', (e)=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); doSave(); } if(e.key==='Escape'){ e.preventDefault(); window.close(); } });
-      <\/script>
-    </body>
-    </html>`);
+  <script>
+    const meta = ${JSON.stringify(meta)};
+    const t = document.getElementById('t');
+    const b = document.getElementById('b');
+    const th = document.getElementById('th');
+    const imgs = document.getElementById('imgs');
+    const ref = document.getElementById('ref');
+    const date = document.getElementById('date');
+
+    ref.textContent = '— ' + meta.ref;
+    date.textContent = meta.date ? ('최근 저장: ' + meta.date) : '';
+    t.value = meta.title; b.value = meta.body;
+    (meta.images||[]).forEach(src=>{ const im=new Image(); im.src=src; th.appendChild(im); });
+
+    function fileToDataURL(file){
+      return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
+    }
+    imgs.addEventListener('change', async ()=>{
+      const files=[...imgs.files||[]];
+      for(const f of files){ const data=await fileToDataURL(f); const im=new Image(); im.src=data; th.appendChild(im); }
+      imgs.value='';
+    });
+
+    // 저장
+    document.getElementById('s').onclick = ()=>{
+      const images=[...th.querySelectorAll('img')].map(i=>i.src);
+      opener.postMessage({ type:'sermon-save', title:(t.value||'').trim()||'(제목 없음)', body:(b.value||'').trim(), images }, location.origin);
+      window.close();
+    };
+
+    // 삭제
+    document.getElementById('d').onclick = ()=>{
+      if(confirm('삭제할까요?')){
+        opener.postMessage({ type:'sermon-delete' }, location.origin);
+        window.close();
+      }
+    };
+
+    // 닫기
+    document.getElementById('x').onclick = ()=> window.close();
+  <\/script>
+</body>
+</html>`);
       w.document.close();
-    
-      // ==== 부모창 메시지 수신 (이 팝업에서 오는 것만 처리) ====
-      // ==== 부모창 메시지 수신 (이 팝업에서 오는 것만 처리) ====
-      const onMsg = (ev) => {
-        const data = ev?.data || {};
-        if (!data.type) return;
-      
+
+      const onMsg = (ev)=>{
+        if(ev.origin !== location.origin) return;
+        const data = ev.data||{};
+        if(!data.type) return;
+
         const map = getSermonMap();
-      
-        // 1) 대상 단락 pid: 메시지(paraId)를 우선 사용
-        const pid = data.paraId || CURRENT.paraId;
-        if (!pid) { console.warn('No paraId provided'); return; }
-      
-        const arr = map[pid] || [];
-      
-        // 2) 대상 설교 index: sermonId로 탐색
-        let idxById = -1;
-        if (data.sermonId) {
-          idxById = arr.findIndex(x => x && x.id === data.sermonId);
-        }
-      
-        if (data.type === 'sermon-save') {
+        const arr = map[CURRENT.paraId] || [];
+        if(data.type==='sermon-save'){
           const now = new Date();
           const date = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-      
-          if (idxById >= 0) {
-            // 기존 항목 갱신
-            arr[idxById] = { ...arr[idxById], title: data.title, body: data.body, images: data.images, date };
-          } else {
-            // 안전장치: 못 찾으면 새로 추가
-            arr.unshift({ id: crypto.randomUUID(), title: data.title, body: data.body, images: data.images, date });
+
+          if(arr[idx]){
+            arr[idx] = { ...arr[idx], title: data.title, body: data.body, images: data.images, date };
           }
-      
-          map[pid] = arr;
-          setSermonMap(map);
+          map[CURRENT.paraId] = arr; setSermonMap(map);
           status('설교가 저장되었습니다.');
-      
-          // 현재 보고있는 단락과 같을 때만 목록 리렌더
-          if (CURRENT.paraId === pid) renderSermonList();
-      
+          renderSermonList();
           window.removeEventListener('message', onMsg);
         }
-      
-        if (data.type === 'sermon-delete') {
-          if (idxById >= 0) {
-            arr.splice(idxById, 1);
-            map[pid] = arr;
-            setSermonMap(map);
-            status('설교가 삭제되었습니다.');
-            if (CURRENT.paraId === pid) renderSermonList();
-          } else {
-            console.warn('sermonId not found to delete');
-          }
+        if(data.type==='sermon-delete'){
+          if(arr[idx]) arr.splice(idx,1);
+          map[CURRENT.paraId] = arr; setSermonMap(map);
+          status('설교가 삭제되었습니다.');
+          renderSermonList();
           window.removeEventListener('message', onMsg);
         }
       };
       window.addEventListener('message', onMsg);
     }
-
   </script>
 </body>
 </html>
