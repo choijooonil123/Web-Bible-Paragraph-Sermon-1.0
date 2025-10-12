@@ -684,31 +684,31 @@ function goToNextParagraphInline(book, chap, idx){
   if (READER.btn) READER.btn.textContent = '낭독';
 
   // 같은 장의 다음 단락
-  if (idx < chObj.paras.length - 1){
+  if(idx < chObj.paras.length-1){
     const nextEl = paraEls[idx+1];
-    if (nextEl){
+    if(nextEl){
       chapEl.open = true; nextEl.open = true;
       CURRENT.book = book; CURRENT.chap = chap; CURRENT.paraIdx = idx+1;
       READER.scope = nextEl;
       READER.btn = nextEl.querySelector('.speakBtn');
-      if (READER.btn) READER.btn.textContent = '중지';
+      if (READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독';
       return true;
     }
   }
 
   // 다음 장 첫 단락
-  if (chPos >= 0 && chPos < chapNums.length - 1){
+  if(chPos >= 0 && chPos < chapNums.length-1){
     const nextChap = chapNums[chPos+1];
     const nextChapEl = chaptersEls[chPos+1];
-    if (nextChapEl){
-      const nextParas = BIBLE.books[book][nextChap].paras || [];
-      if (nextParas.length){
+    if(nextChapEl){
+      const nextParas = BIBLE.books[book][nextChap].paras||[];
+      if(nextParas.length){
         const nextParaEl = nextChapEl.querySelector(':scope > .paras > details.para');
         nextChapEl.open = true; if(nextParaEl) nextParaEl.open = true;
         CURRENT.book = book; CURRENT.chap = nextChap; CURRENT.paraIdx = 0;
         READER.scope = nextParaEl;
         READER.btn = nextParaEl?.querySelector('.speakBtn') || null;
-        if (READER.btn) READER.btn.textContent = '중지';
+        if (READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독';
         return true;
       }
     }
@@ -717,19 +717,19 @@ function goToNextParagraphInline(book, chap, idx){
   // 다음 책 첫 장 첫 단락
   const bookNames = Object.keys(BIBLE.books);
   const bPos = bookNames.indexOf(book);
-  if (bPos >= 0 && bPos < bookNames.length - 1){
+  if(bPos >= 0 && bPos < bookNames.length-1){
     const nextBook = bookNames[bPos+1];
     const nextBookEl = booksEls[bPos+1];
-    if (nextBookEl){
+    if(nextBookEl){
       const firstChap = Math.min(...Object.keys(BIBLE.books[nextBook]).map(n=>parseInt(n,10)));
       const nextChapEl = nextBookEl.querySelector(':scope > .chapters > details');
       const nextParaEl = nextChapEl?.querySelector(':scope > .paras > details.para');
-      if (nextParaEl){
+      if(nextParaEl){
         nextBookEl.open = true; nextChapEl.open = true; nextParaEl.open = true;
         CURRENT.book = nextBook; CURRENT.chap = firstChap; CURRENT.paraIdx = 0;
         READER.scope = nextParaEl;
         READER.btn = nextParaEl.querySelector('.speakBtn');
-        if (READER.btn) READER.btn.textContent = '중지';
+        if (READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독';
         return true;
       }
     }
@@ -936,12 +936,69 @@ function goToNextParagraphInline(book, chap, idx){
       }
     });
 
-    window.addEventListener('keydown', (e)=>{
-      if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='s'){
-        e.preventDefault();
-        downloadBibleJSON();
-      }
-    });
+window.addEventListener('keydown', (e)=>{
+  if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='s'){
+    e.preventDefault();
+    downloadBibleJSON();
+    return;
+  }
+
+  if(e.target && ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+
+  const key = e.key.toLowerCase();
+
+  if(key === 's'){
+    e.preventDefault();
+    const openPara = treeEl.querySelector('details.para[open]');
+    if(openPara && CURRENT.book!=null){
+      const btn = openPara.querySelector('.speakBtn');
+      toggleSpeakInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx, openPara, btn);
+    }
+    return;
+  }
+
+  if(key === 'n'){
+    e.preventDefault();
+    if (CURRENT.book == null) return;
+
+    // 현재 재생 중이었는지 기억
+    const wasPlaying = !!READER.playing;
+
+    // 현재 발화 중지(큐 정리)
+    try{ READER.synth && READER.synth.cancel(); }catch(_){}
+    // 재생 의도는 유지: wasPlaying 값으로 재설정
+    READER.playing = wasPlaying;
+
+    // 다음 단락으로 이동
+    const moved = goToNextParagraphInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
+    if(!moved) return;
+
+    // 다음 단락도 곧바로 재생 (단, 이전에 재생 중이었을 때)
+    if(wasPlaying){
+      // 새 단락의 로컬 "계속 낭독" 체크를 반영
+      const cb = READER.scope?.querySelector?.('.keepReading');
+      READER.continuous = !!(cb && cb.checked);
+
+      // 큐 재빌드 및 시작
+      READER.q = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
+      READER.idx = 0;
+
+      // 새 단락의 체크박스/버튼 라벨 동기화
+      bindKeepReading(READER.scope);
+      updateInlineSpeakBtn();
+
+      // 크롬 onend 직후 speak 무시 방지 약간의 지연
+      setTimeout(()=>{
+        try{ READER.synth && READER.synth.cancel(); }catch(_){}
+        playNextInQueueInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
+      }, 120);
+    }else{
+      // 재생 중이 아니었으면 버튼 라벨을 '낭독'으로 보장
+      if (READER.btn) READER.btn.textContent = '낭독';
+    }
+  }
+});
+
 
     /* --------- Sermon Editor Popup (Slim) --------- */
     function openSermonEditorWindow(idx){
