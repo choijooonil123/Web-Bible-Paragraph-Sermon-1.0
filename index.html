@@ -127,15 +127,6 @@
 
     <div style="flex:1"></div>
     <div class="pill"><span class="muted">단축키:</span> <span> S</span> 재생/중지 <span> · N</span> 다음 단락</div>
-
-    <div class="pill">
-      <label class="inline-flex" style="gap:8px; align-items:center">
-        <input type="checkbox" id="keepAll" />
-        <span>계속 낭독(전역)</span>
-      </label>
-    </div>
-
-
   </header>
 
   <div class="layout">
@@ -626,27 +617,6 @@
       playNextInQueueInline(book, chap, idx);
     }
 
- 
-    (function wrapToggleSpeakInlineForKeepAll(){
-      const orig = toggleSpeakInline;
-      toggleSpeakInline = function(book, chap, idx, paraDetailsEl, btnEl){
-        try{
-          const keepAll = document.getElementById('keepAll');
-          if (keepAll){
-            // 단락 툴바의 로컬 체크박스가 있으면 전역 상태를 그대로 반영
-            const localCB = paraDetailsEl?.querySelector('.keepReading');
-            if (localCB) localCB.checked = !!keepAll.checked;
-
-            // 로컬 체크박스가 없더라도 연속 낭독 변수는 전역값으로 강제 세팅
-            if (!localCB) READER.continuous = !!keepAll.checked;
-          }
-        }catch(_){}
-        // 이후 동작은 원래 로직 그대로
-        return orig(book, chap, idx, paraDetailsEl, btnEl);
-      };
-    })();
-
-
     function playNextInQueueInline(book, chap, idx){
       if(!READER.playing) return;
       if(READER.idx >= READER.q.length){
@@ -654,7 +624,10 @@
           READER.q = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
           READER.idx = 0;
           bindKeepReading(READER.scope);
-    
+
+          // ★ 추가: 새 단락의 버튼 라벨을 즉시 ‘중지’로 동기화
+          updateInlineSpeakBtn();
+          
           // ★ 변경: 크롬이 onend 직후 speak를 종종 무시해서 아주 짧게 지연
           setTimeout(()=> {
             // 혹시 이전 발화가 남아 있으면 한 번 더 정리
@@ -681,62 +654,76 @@
 
     function updateInlineSpeakBtn(){ if(READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독'; }
 
-    function goToNextParagraphInline(book, chap, idx){
-      const chObj = BIBLE.books[book][chap];
+function goToNextParagraphInline(book, chap, idx){
+  const chObj = BIBLE.books[book][chap];
 
-      const booksEls = [...treeEl.children];
-      const bIdx = Object.keys(BIBLE.books).indexOf(book);
-      const bookEl = booksEls[bIdx]; if(!bookEl) return false;
+  const booksEls = [...treeEl.children];
+  const bIdx = Object.keys(BIBLE.books).indexOf(book);
+  const bookEl = booksEls[bIdx]; if(!bookEl) return false;
 
-      const chaptersEls = bookEl.querySelectorAll(':scope > .chapters > details');
-      const chapNums = Object.keys(BIBLE.books[book]).map(n=>parseInt(n,10)).sort((a,b)=>a-b);
-      const chPos = chapNums.indexOf(ch);
-      const chapEl = chaptersEls[chPos]; if(!chapEl) return false;
+  const chaptersEls = bookEl.querySelectorAll(':scope > .chapters > details');
+  const chapNums = Object.keys(BIBLE.books[book]).map(n=>parseInt(n,10)).sort((a,b)=>a-b);
+  const chPos = chapNums.indexOf(ch);
+  const chapEl = chaptersEls[chPos]; if(!chapEl) return false;
 
-      const paraEls = chapEl.querySelectorAll(':scope > .paras > details.para');
+  const paraEls = chapEl.querySelectorAll(':scope > .paras > details.para');
 
-      if(idx < chObj.paras.length-1){
-        const nextEl = paraEls[idx+1];
-        if(nextEl){
-          chapEl.open = true; nextEl.open = true;
-          CURRENT.book = book; CURRENT.chap = chap; CURRENT.paraIdx = idx+1;
-          READER.scope = nextEl; READER.btn = nextEl.querySelector('.speakBtn');
-          return true;
-        }
-      }
-      if(chPos >= 0 && chPos < chapNums.length-1){
-        const nextChap = chapNums[chPos+1];
-        const nextChapEl = chaptersEls[chPos+1];
-        if(nextChapEl){
-          const nextParas = BIBLE.books[book][nextChap].paras||[];
-          if(nextParas.length){
-            const nextParaEl = nextChapEl.querySelector(':scope > .paras > details.para');
-            nextChapEl.open = true; if(nextParaEl) nextParaEl.open = true;
-            CURRENT.book = book; CURRENT.chap = nextChap; CURRENT.paraIdx = 0;
-            READER.scope = nextParaEl; READER.btn = nextParaEl?.querySelector('.speakBtn') || null;
-            return true;
-          }
-        }
-      }
-      const bookNames = Object.keys(BIBLE.books);
-      const bPos = bookNames.indexOf(book);
-      if(bPos >= 0 && bPos < bookNames.length-1){
-        const nextBook = bookNames[bPos+1];
-        const nextBookEl = booksEls[bPos+1];
-        if(nextBookEl){
-          const firstChap = Math.min(...Object.keys(BIBLE.books[nextBook]).map(n=>parseInt(n,10)));
-          const nextChapEl = nextBookEl.querySelector(':scope > .chapters > details');
-          const nextParaEl = nextChapEl?.querySelector(':scope > .paras > details.para');
-          if(nextParaEl){
-            nextBookEl.open = true; nextChapEl.open = true; nextParaEl.open = true;
-            CURRENT.book = nextBook; CURRENT.chap = firstChap; CURRENT.paraIdx = 0;
-            READER.scope = nextParaEl; READER.btn = nextParaEl.querySelector('.speakBtn');
-            return true;
-          }
-        }
-      }
-      return false;
+  // 이전 단락 버튼 라벨 복구
+  if (READER.btn) READER.btn.textContent = '낭독';
+
+  // 같은 장 내 다음 단락
+  if(idx < chObj.paras.length-1){
+    const nextEl = paraEls[idx+1];
+    if(nextEl){
+      chapEl.open = true; nextEl.open = true;
+      CURRENT.book = book; CURRENT.chap = chap; CURRENT.paraIdx = idx+1;
+      READER.scope = nextEl;
+      READER.btn = nextEl.querySelector('.speakBtn');
+      if (READER.btn) READER.btn.textContent = '중지';
+      return true;
     }
+  }
+
+  // 다음 장의 첫 단락
+  if(chPos >= 0 && chPos < chapNums.length-1){
+    const nextChap = chapNums[chPos+1];
+    const nextChapEl = chaptersEls[chPos+1];
+    if(nextChapEl){
+      const nextParas = BIBLE.books[book][nextChap].paras||[];
+      if(nextParas.length){
+        const nextParaEl = nextChapEl.querySelector(':scope > .paras > details.para');
+        nextChapEl.open = true; if(nextParaEl) nextParaEl.open = true;
+        CURRENT.book = book; CURRENT.chap = nextChap; CURRENT.paraIdx = 0;
+        READER.scope = nextParaEl;
+        READER.btn = nextParaEl?.querySelector('.speakBtn') || null;
+        if (READER.btn) READER.btn.textContent = '중지';
+        return true;
+      }
+    }
+  }
+
+  // 다음 책의 첫 장 첫 단락
+  const bookNames = Object.keys(BIBLE.books);
+  const bPos = bookNames.indexOf(book);
+  if(bPos >= 0 && bPos < bookNames.length-1){
+    const nextBook = bookNames[bPos+1];
+    const nextBookEl = booksEls[bPos+1];
+    if(nextBookEl){
+      const firstChap = Math.min(...Object.keys(BIBLE.books[nextBook]).map(n=>parseInt(n,10)));
+      const nextChapEl = nextBookEl.querySelector(':scope > .chapters > details');
+      const nextParaEl = nextChapEl?.querySelector(':scope > .paras > details.para');
+      if(nextParaEl){
+        nextBookEl.open = true; nextChapEl.open = true; nextParaEl.open = true;
+        CURRENT.book = nextBook; CURRENT.chap = firstChap; CURRENT.paraIdx = 0;
+        READER.scope = nextParaEl;
+        READER.btn = nextParaEl.querySelector('.speakBtn');
+        if (READER.btn) READER.btn.textContent = '중지';
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
     /* --------- Sermon / Context Editors --------- */
     function getSermonMap(){ try{ return JSON.parse(localStorage.getItem(STORAGE_SERMON)||'{}'); }catch{ return {}; } }
@@ -922,29 +909,7 @@
     }
 
     /* --------- Misc --------- */
-
-
-    /* --------- Misc --------- */
-
-    // ★ 전역 '계속 낭독' 체크 상태를, 단락의 '낭독' 버튼을 누를 때 해당 단락 체크박스에 자동 반영
-    (function wireGlobalKeepReading(){
-      const keepAll = document.getElementById('keepAll');
-      if (!keepAll) return;
-
-      // speakBtn 클릭을 가로채서, 같은 툴바 안의 .keepReading 체크박스에 전역 상태를 복사
-      document.addEventListener('click', (e)=>{
-        const btn = e.target.closest('.speakBtn');
-        if (!btn) return;
-        const toolbar = btn.closest('.ptoolbar');
-        const localCB = toolbar?.querySelector('.keepReading');
-        if (localCB) localCB.checked = !!keepAll.checked;
-        // 이 시점에 기존 코드(toggleSpeakInline) 가 localCB.checked 값을 읽어서 READER.continuous 로 사용합니다.
-      }, true);
-    })();
-
-    // (이 아래로는 기존 keydown 핸들러 등 원래 코드 그대로 유지)
-
-    
+   
     window.addEventListener('keydown', (e)=>{
       if(e.target && ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
       if(e.key.toLowerCase()==='s'){ e.preventDefault();
