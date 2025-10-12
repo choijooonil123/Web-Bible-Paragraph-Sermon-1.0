@@ -671,7 +671,7 @@ function goToNextParagraphInline(book, chap, idx){
   // 이전 단락 버튼 라벨 복구
   if (READER.btn) READER.btn.textContent = '낭독';
 
-  // 같은 장 내 다음 단락
+  // 같은 장의 다음 단락
   if(idx < chObj.paras.length-1){
     const nextEl = paraEls[idx+1];
     if(nextEl){
@@ -684,7 +684,7 @@ function goToNextParagraphInline(book, chap, idx){
     }
   }
 
-  // 다음 장의 첫 단락
+  // 다음 장 첫 단락
   if(chPos >= 0 && chPos < chapNums.length-1){
     const nextChap = chapNums[chPos+1];
     const nextChapEl = chaptersEls[chPos+1];
@@ -702,7 +702,7 @@ function goToNextParagraphInline(book, chap, idx){
     }
   }
 
-  // 다음 책의 첫 장 첫 단락
+  // 다음 책 첫 장 첫 단락
   const bookNames = Object.keys(BIBLE.books);
   const bPos = bookNames.indexOf(book);
   if(bPos >= 0 && bPos < bookNames.length-1){
