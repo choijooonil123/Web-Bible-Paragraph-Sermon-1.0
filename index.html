@@ -626,7 +626,7 @@
       playNextInQueueInline(book, chap, idx);
     }
 
-    <script>
+ 
     (function wrapToggleSpeakInlineForKeepAll(){
       const orig = toggleSpeakInline;
       toggleSpeakInline = function(book, chap, idx, paraDetailsEl, btnEl){
@@ -645,7 +645,7 @@
         return orig(book, chap, idx, paraDetailsEl, btnEl);
       };
     })();
-    </script>
+
 
     function playNextInQueueInline(book, chap, idx){
       if(!READER.playing) return;
