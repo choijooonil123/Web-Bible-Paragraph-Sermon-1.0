@@ -598,51 +598,63 @@
       READER.synth.speak(u);
     }
 
-    function toggleSpeakInline(book, chap, idx, paraDetailsEl, btnEl){
-      if(!READER.synth) return alert('이 브라우저는 음성합성을 지원하지 않습니다.');
-      const sameScope = READER.playing && READER.scope === paraDetailsEl;
-      if(READER.playing && sameScope){ stopSpeakInline(); return; }
-    
-      const cb = paraDetailsEl.querySelector('.keepReading');
-      READER.continuous = !!(cb && cb.checked);
-    
-      READER.q = buildQueueFrom(book, chap, idx);
-      READER.idx = 0; READER.playing = true; READER.scope = paraDetailsEl; READER.btn = btnEl;
-    
-      // ★ 추가: 혹시 남아있을 큐/잔여 발화를 지움
-      try{ READER.synth.cancel(); }catch(e){}
-    
+function toggleSpeakInline(book, chap, idx, paraDetailsEl, btnEl){
+  if(!READER.synth) return alert('이 브라우저는 음성합성을 지원하지 않습니다.');
+  const sameScope = READER.playing && READER.scope === paraDetailsEl;
+  if(READER.playing && sameScope){ stopSpeakInline(); return; }
+
+  // 현재 단락의 로컬 체크 상태만 사용
+  const cb = paraDetailsEl.querySelector('.keepReading');
+  READER.continuous = !!(cb && cb.checked);
+
+  READER.q = buildQueueFrom(book, chap, idx);
+  READER.idx = 0;
+  READER.playing = true;
+  READER.scope = paraDetailsEl;
+  READER.btn = btnEl;
+
+  try{ READER.synth.cancel(); }catch(e){}
+
+  bindKeepReading(READER.scope);     // 로컬 체크와 READER.continuous 동기화
+  updateInlineSpeakBtn();            // 버튼 라벨 '중지'
+  playNextInQueueInline(book, chap, idx);
+}
+
+
+function playNextInQueueInline(book, chap, idx){
+  if(!READER.playing) return;
+
+  // 단락 끝
+  if(READER.idx >= READER.q.length){
+    // 계속 낭독이 켜져 있으면 다음 단락으로 자동 이동
+    if(READER.continuous && goToNextParagraphInline(book, chap, idx)){
+      // 새 단락 기준으로 큐 재빌드
+      READER.q = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
+      READER.idx = 0;
+
+      // 새 단락의 로컬 체크박스와 상태 동기화
       bindKeepReading(READER.scope);
-      updateInlineSpeakBtn();
-      playNextInQueueInline(book, chap, idx);
-    }
+      updateInlineSpeakBtn(); // 새 단락 버튼 '중지' 표시
 
-    function playNextInQueueInline(book, chap, idx){
-      if(!READER.playing) return;
-      if(READER.idx >= READER.q.length){
-        if(READER.continuous && goToNextParagraphInline(book, chap, idx)){
-          READER.q = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
-          READER.idx = 0;
-          bindKeepReading(READER.scope);
-
-          // ★ 추가: 새 단락의 버튼 라벨을 즉시 ‘중지’로 동기화
-          updateInlineSpeakBtn();
-          
-          // ★ 변경: 크롬이 onend 직후 speak를 종종 무시해서 아주 짧게 지연
-          setTimeout(()=> {
-            // 혹시 이전 발화가 남아 있으면 한 번 더 정리
-            try{ READER.synth.cancel(); }catch(e){}
-            playNextInQueueInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
-          }, 120);
-    
-          return;
-        }
-        stopSpeakInline();
-        return;
-      }
-      const item = READER.q[READER.idx];
-      speakVerseItemInScope(item, READER.scope, ()=>{ READER.idx++; playNextInQueueInline(book, chap, idx); });
+      // 크롬 onend 직후 speak 무시 방지
+      setTimeout(()=>{
+        try{ READER.synth.cancel(); }catch(e){}
+        playNextInQueueInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
+      }, 120);
+      return;
     }
+    // 계속 낭독이 꺼져 있으면 종료
+    stopSpeakInline();
+    return;
+  }
+
+  // 같은 단락 내 다음 구절 재생
+  const item = READER.q[READER.idx];
+  speakVerseItemInScope(item, READER.scope, ()=>{
+    READER.idx++;
+    playNextInQueueInline(book, chap, idx);
+  });
+}
 
     function stopSpeakInline(){
       READER.playing = false;
@@ -672,9 +684,9 @@ function goToNextParagraphInline(book, chap, idx){
   if (READER.btn) READER.btn.textContent = '낭독';
 
   // 같은 장의 다음 단락
-  if(idx < chObj.paras.length-1){
+  if (idx < chObj.paras.length - 1){
     const nextEl = paraEls[idx+1];
-    if(nextEl){
+    if (nextEl){
       chapEl.open = true; nextEl.open = true;
       CURRENT.book = book; CURRENT.chap = chap; CURRENT.paraIdx = idx+1;
       READER.scope = nextEl;
@@ -685,12 +697,12 @@ function goToNextParagraphInline(book, chap, idx){
   }
 
   // 다음 장 첫 단락
-  if(chPos >= 0 && chPos < chapNums.length-1){
+  if (chPos >= 0 && chPos < chapNums.length - 1){
     const nextChap = chapNums[chPos+1];
     const nextChapEl = chaptersEls[chPos+1];
-    if(nextChapEl){
-      const nextParas = BIBLE.books[book][nextChap].paras||[];
-      if(nextParas.length){
+    if (nextChapEl){
+      const nextParas = BIBLE.books[book][nextChap].paras || [];
+      if (nextParas.length){
         const nextParaEl = nextChapEl.querySelector(':scope > .paras > details.para');
         nextChapEl.open = true; if(nextParaEl) nextParaEl.open = true;
         CURRENT.book = book; CURRENT.chap = nextChap; CURRENT.paraIdx = 0;
@@ -705,14 +717,14 @@ function goToNextParagraphInline(book, chap, idx){
   // 다음 책 첫 장 첫 단락
   const bookNames = Object.keys(BIBLE.books);
   const bPos = bookNames.indexOf(book);
-  if(bPos >= 0 && bPos < bookNames.length-1){
+  if (bPos >= 0 && bPos < bookNames.length - 1){
     const nextBook = bookNames[bPos+1];
     const nextBookEl = booksEls[bPos+1];
-    if(nextBookEl){
+    if (nextBookEl){
       const firstChap = Math.min(...Object.keys(BIBLE.books[nextBook]).map(n=>parseInt(n,10)));
       const nextChapEl = nextBookEl.querySelector(':scope > .chapters > details');
       const nextParaEl = nextChapEl?.querySelector(':scope > .paras > details.para');
-      if(nextParaEl){
+      if (nextParaEl){
         nextBookEl.open = true; nextChapEl.open = true; nextParaEl.open = true;
         CURRENT.book = nextBook; CURRENT.chap = firstChap; CURRENT.paraIdx = 0;
         READER.scope = nextParaEl;
