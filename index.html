@@ -98,13 +98,13 @@
       <button id="btnSaveJSON">JSON 저장</button>
     </div>
 
-    <!-- ★ 내보내기 / 가져오기: 이 블록만 추가 -->
+
     <div class="pill">
       <button id="btnExportAll">내보내기</button>
       <input id="importFile" type="file" accept="application/json" style="display:none">
       <button id="btnImportAll">가져오기</button>
     </div>
-    <!-- ★ 끝 -->
+
 
     <div class="pill">
       <span class="muted">음성</span>
@@ -127,14 +127,14 @@
 
     <div style="flex:1"></div>
     <div class="pill"><span class="muted">단축키:</span> <span> S</span> 재생/중지 <span> · N</span> 다음 단락</div>
-        <!-- ★ 전역 계속 낭독 -->
+
     <div class="pill">
       <label class="inline-flex" style="gap:8px; align-items:center">
         <input type="checkbox" id="keepAll" />
         <span>계속 낭독(전역)</span>
       </label>
     </div>
-    <!-- ★ 끝 -->
+
 
   </header>
 
@@ -625,9 +625,7 @@
       updateInlineSpeakBtn();
       playNextInQueueInline(book, chap, idx);
     }
-    <!-- (여기는 기존 toggleSpeakInline 함수 정의가 끝나는 지점 바로 다음 줄입니다) -->
 
-    <!-- ★ 전역-연동 래퍼: 전역 keepAll 값을 단락 체크박스/READER.continuous 에 주입 -->
     <script>
     (function wrapToggleSpeakInlineForKeepAll(){
       const orig = toggleSpeakInline;
@@ -925,7 +923,6 @@
 
     /* --------- Misc --------- */
 
-    <!-- … (위쪽 기존 스크립트 그대로 두고) … -->
 
     /* --------- Misc --------- */
 
