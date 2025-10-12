@@ -168,6 +168,28 @@
 
   <script>
     /* --------- Utils --------- */
+
+function syncCurrentFromOpen(){
+  const openPara = treeEl.querySelector('details.para[open]');
+  if(!openPara) return false;
+
+  const t = openPara.querySelector('summary .ptitle');
+  if(!t) return false;
+
+  const book = t.dataset.book;
+  const chap = parseInt(t.dataset.ch, 10);
+  const idx  = parseInt(t.dataset.idx, 10);
+
+  const para = BIBLE?.books?.[book]?.[chap]?.paras?.[idx];
+  if(!para) return false;
+
+  CURRENT.book   = book;
+  CURRENT.chap   = chap;
+  CURRENT.paraIdx= idx;
+  CURRENT.paraId = `${book}|${chap}|${para.ref}`;
+  return true;
+}
+    
     const el = id => document.getElementById(id);
     function status(msg){ statusEl.textContent = msg; }
     function escapeHtml(s){ return (s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
@@ -626,13 +648,18 @@ function playNextInQueueInline(book, chap, idx){
 
   // 단락 끝
   if(READER.idx >= READER.q.length){
-    // 계속 낭독이 켜져 있으면 다음 단락으로 자동 이동
+    // 계속 낭독 켜져 있으면 다음 단락 자동 이동
     if(READER.continuous && goToNextParagraphInline(book, chap, idx)){
+      // === 새 단락 도착 ===
+      // 새 단락의 로컬 체크 상태로 갱신
+      const nextCb = READER.scope?.querySelector?.('.keepReading');
+      READER.continuous = !!(nextCb && nextCb.checked);
+
       // 새 단락 기준으로 큐 재빌드
       READER.q = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
       READER.idx = 0;
 
-      // 새 단락의 로컬 체크박스와 상태 동기화
+      // 새 단락 UI 동기화
       bindKeepReading(READER.scope);
       updateInlineSpeakBtn(); // 새 단락 버튼 '중지' 표시
 
@@ -643,7 +670,7 @@ function playNextInQueueInline(book, chap, idx){
       }, 120);
       return;
     }
-    // 계속 낭독이 꺼져 있으면 종료
+    // 계속 낭독이 꺼져 있거나 더 이상 이동 불가
     stopSpeakInline();
     return;
   }
@@ -655,6 +682,7 @@ function playNextInQueueInline(book, chap, idx){
     playNextInQueueInline(book, chap, idx);
   });
 }
+
 
     function stopSpeakInline(){
       READER.playing = false;
@@ -922,33 +950,25 @@ function goToNextParagraphInline(book, chap, idx){
 
     /* --------- Misc --------- */
    
-    window.addEventListener('keydown', (e)=>{
-      if(e.target && ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
-      if(e.key.toLowerCase()==='s'){ e.preventDefault();
-        const openPara = treeEl.querySelector('details.para[open]');
-        if(openPara && CURRENT.book!=null){
-          const btn = openPara.querySelector('.speakBtn');
-          toggleSpeakInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx, openPara, btn);
-        }
-      }
-      if(e.key.toLowerCase()==='n'){ e.preventDefault();
-        if(CURRENT.book!=null){ READER.playing=false; if(READER.synth) READER.synth.cancel(); goToNextParagraphInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx); }
-      }
-    });
-
 window.addEventListener('keydown', (e)=>{
+  // 저장 핫키 (Ctrl+Shift+S)
   if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='s'){
     e.preventDefault();
     downloadBibleJSON();
     return;
   }
 
+  // 입력 포커스 중이면 무시
   if(e.target && ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
 
   const key = e.key.toLowerCase();
 
+  // S = 현재 열린 단락 기준 낭독 토글
   if(key === 's'){
     e.preventDefault();
+    // 혹시 토글 이벤트가 안 탔을 때를 대비해 열린 단락으로 상태 보정
+    syncCurrentFromOpen();
+
     const openPara = treeEl.querySelector('details.para[open]');
     if(openPara && CURRENT.book!=null){
       const btn = openPara.querySelector('.speakBtn');
@@ -957,47 +977,51 @@ window.addEventListener('keydown', (e)=>{
     return;
   }
 
+  // N = 다음 단락으로 이동 (재생 중이면 자동 이어읽기)
   if(key === 'n'){
     e.preventDefault();
-    if (CURRENT.book == null) return;
 
-    // 현재 재생 중이었는지 기억
+    // 열린 단락 기준으로 상태 보정
+    if(!syncCurrentFromOpen()) return;
+
     const wasPlaying = !!READER.playing;
 
-    // 현재 발화 중지(큐 정리)
+    // 현재 발화 정리
     try{ READER.synth && READER.synth.cancel(); }catch(_){}
-    // 재생 의도는 유지: wasPlaying 값으로 재설정
+    if (READER._wd){ clearTimeout(READER._wd); READER._wd = null; }
+
+    // 재생 의도 유지
     READER.playing = wasPlaying;
 
-    // 다음 단락으로 이동
+    // 다음 단락 이동
     const moved = goToNextParagraphInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
     if(!moved) return;
 
-    // 다음 단락도 곧바로 재생 (단, 이전에 재생 중이었을 때)
+    // 재생 중이었다면 곧바로 이어 읽기
     if(wasPlaying){
-      // 새 단락의 로컬 "계속 낭독" 체크를 반영
+      // 새 단락의 로컬 "계속 낭독" 상태를 반영
       const cb = READER.scope?.querySelector?.('.keepReading');
       READER.continuous = !!(cb && cb.checked);
 
-      // 큐 재빌드 및 시작
-      READER.q = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
+      // 큐 재빌드
+      READER.q   = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
       READER.idx = 0;
 
-      // 새 단락의 체크박스/버튼 라벨 동기화
+      // UI 동기화
       bindKeepReading(READER.scope);
       updateInlineSpeakBtn();
 
-      // 크롬 onend 직후 speak 무시 방지 약간의 지연
       setTimeout(()=>{
         try{ READER.synth && READER.synth.cancel(); }catch(_){}
         playNextInQueueInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
       }, 120);
     }else{
-      // 재생 중이 아니었으면 버튼 라벨을 '낭독'으로 보장
+      // 재생 중이 아니면 버튼 라벨을 '낭독'으로 보장
       if (READER.btn) READER.btn.textContent = '낭독';
     }
   }
 });
+
 
 
     /* --------- Sermon Editor Popup (Slim) --------- */
