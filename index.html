@@ -625,6 +625,29 @@
       updateInlineSpeakBtn();
       playNextInQueueInline(book, chap, idx);
     }
+    <!-- (여기는 기존 toggleSpeakInline 함수 정의가 끝나는 지점 바로 다음 줄입니다) -->
+
+    <!-- ★ 전역-연동 래퍼: 전역 keepAll 값을 단락 체크박스/READER.continuous 에 주입 -->
+    <script>
+    (function wrapToggleSpeakInlineForKeepAll(){
+      const orig = toggleSpeakInline;
+      toggleSpeakInline = function(book, chap, idx, paraDetailsEl, btnEl){
+        try{
+          const keepAll = document.getElementById('keepAll');
+          if (keepAll){
+            // 단락 툴바의 로컬 체크박스가 있으면 전역 상태를 그대로 반영
+            const localCB = paraDetailsEl?.querySelector('.keepReading');
+            if (localCB) localCB.checked = !!keepAll.checked;
+
+            // 로컬 체크박스가 없더라도 연속 낭독 변수는 전역값으로 강제 세팅
+            if (!localCB) READER.continuous = !!keepAll.checked;
+          }
+        }catch(_){}
+        // 이후 동작은 원래 로직 그대로
+        return orig(book, chap, idx, paraDetailsEl, btnEl);
+      };
+    })();
+    </script>
 
     function playNextInQueueInline(book, chap, idx){
       if(!READER.playing) return;
