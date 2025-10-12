@@ -327,7 +327,7 @@ function syncCurrentFromOpen(){
 
     let BIBLE = null;
     let CURRENT = { book:null, chap:null, paraIdx:null, paraId:null };
-    let READER = { playing:false, q:[], idx:0, synth:window.speechSynthesis||null, scope:null, btn:null, continuous:false };
+    let READER = { playing:false, q:[], idx:0, synth:window.speechSynthesis||null, scope:null, btn:null, continuous:false, forced:false };
     let EDITOR_READER = { playing:false, u:null, synth:window.speechSynthesis||null };
 
     /* --------- Boot --------- */
@@ -589,8 +589,18 @@ function syncCurrentFromOpen(){
     function clearReadingHighlight(scope){ [...scope.querySelectorAll('.pline')].forEach(el=> el.classList.remove('reading')); }
     function bindKeepReading(scope){
       const cb = scope.querySelector('.keepReading');
-      if(!cb) return; cb.checked = READER.continuous; cb.onchange = ()=> { READER.continuous = cb.checked; };
+      if(!cb) return;
+      cb.checked  = READER.continuous;
+      cb.disabled = !!READER.forced; // 강제 모드일 땐 비활성화
+      cb.onchange = ()=>{
+        if(READER.forced){ // 강제 모드에서는 사용자의 토글을 무시
+          cb.checked = true;
+          return;
+        }
+        READER.continuous = cb.checked;
+      };
     }
+
     function speakVerseItemInScope(item, scope, onend){
       if(!READER.synth) return;
     
@@ -621,25 +631,27 @@ function syncCurrentFromOpen(){
     }
 
 function toggleSpeakInline(book, chap, idx, paraDetailsEl, btnEl){
-  if(!READER.synth) return alert('이 브라우저는 음성합성을 지원하지 않습니다.');
-  const sameScope = READER.playing && READER.scope === paraDetailsEl;
-  if(READER.playing && sameScope){ stopSpeakInline(); return; }
+    if(!READER.synth) return alert('이 브라우저는 음성합성을 지원하지 않습니다.');
+    const sameScope = READER.playing && READER.scope === paraDetailsEl;
+    if(READER.playing && sameScope){ stopSpeakInline(); return; }
+    
+    // ★ 강제 이어읽기 모드로 진입
+    READER.forced = true;
+    READER.continuous = true; // 체크박스와 무관하게 켠다
+    
+    READER.q = buildQueueFrom(book, chap, idx);
+    READER.idx = 0;
+    READER.playing = true;
+    READER.scope = paraDetailsEl;
+    READER.btn = btnEl;
+    
+    try{ READER.synth.cancel(); }catch(e){}
+    
+    // 체크박스 UI를 강제 모드/상태에 맞춰 동기화
+    bindKeepReading(READER.scope);
+    updateInlineSpeakBtn();
+    playNextInQueueInline(book, chap, idx);
 
-  // 현재 단락의 로컬 체크 상태만 사용
-  const cb = paraDetailsEl.querySelector('.keepReading');
-  READER.continuous = !!(cb && cb.checked);
-
-  READER.q = buildQueueFrom(book, chap, idx);
-  READER.idx = 0;
-  READER.playing = true;
-  READER.scope = paraDetailsEl;
-  READER.btn = btnEl;
-
-  try{ READER.synth.cancel(); }catch(e){}
-
-  bindKeepReading(READER.scope);     // 로컬 체크와 READER.continuous 동기화
-  updateInlineSpeakBtn();            // 버튼 라벨 '중지'
-  playNextInQueueInline(book, chap, idx);
 }
 
 
@@ -653,16 +665,22 @@ function playNextInQueueInline(book, chap, idx){
       // === 새 단락 도착 ===
       // 새 단락의 로컬 체크 상태로 갱신
       // (교체) 전역 continuous 유지, UI만 반영
-      const nextCb = READER.scope?.querySelector?.('.keepReading'); if(nextCb) nextCb.checked = READER.continuous;
-
-
+      // === 새 단락 도착 ===
+      // 전역 continuous 유지 + 새 단락 체크 UI만 반영(+강제 모드면 비활성)
+      const nextCb = READER.scope?.querySelector?.('.keepReading');
+      if(nextCb){
+        nextCb.checked  = READER.continuous;
+        nextCb.disabled = !!READER.forced; // ★ 강제 모드면 비활성
+      }
+      
       // 새 단락 기준으로 큐 재빌드
       READER.q = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
       READER.idx = 0;
-
+      
       // 새 단락 UI 동기화
       bindKeepReading(READER.scope);
-      updateInlineSpeakBtn(); // 새 단락 버튼 '중지' 표시
+      updateInlineSpeakBtn();
+
 
       // 크롬 onend 직후 speak 무시 방지
       setTimeout(()=>{
@@ -685,13 +703,23 @@ function playNextInQueueInline(book, chap, idx){
 }
 
 
-    function stopSpeakInline(){
-      READER.playing = false;
-      try{ READER.synth && READER.synth.cancel(); }catch(e){}
-      if (READER._wd){ clearTimeout(READER._wd); READER._wd = null; }
-      if(READER.scope) clearReadingHighlight(READER.scope);
-      updateInlineSpeakBtn(); READER.scope = null; READER.btn = null;
-    }
+function stopSpeakInline(){
+  READER.playing = false;
+  READER.forced  = false; // ★ 강제 모드 해제
+  try{ READER.synth && READER.synth.cancel(); }catch(e){}
+  if (READER._wd){ clearTimeout(READER._wd); READER._wd = null; }
+
+  // 체크박스 UI 복구 (가능하면)
+  if(READER.scope){
+    const cb = READER.scope.querySelector?.('.keepReading');
+    if(cb) cb.disabled = false;
+    clearReadingHighlight(READER.scope);
+  }
+
+  updateInlineSpeakBtn();
+  READER.scope = null; READER.btn = null;
+}
+
 
     function updateInlineSpeakBtn(){ if(READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독'; }
 
@@ -999,27 +1027,26 @@ window.addEventListener('keydown', (e)=>{
     if(!moved) return;
 
     // 재생 중이었다면 곧바로 이어 읽기
-    if(wasPlaying){
-      // 새 단락의 로컬 "계속 낭독" 상태를 반영
-      // (교체) 전역 continuous 유지, UI만 반영
-      const cb = READER.scope?.querySelector?.('.keepReading'); if(cb) cb.checked = READER.continuous;
-
-      // 큐 재빌드
+    if (wasPlaying){
+      // 전역 continuous 유지 + 새 단락 체크 UI 동기화(+강제 모드면 비활성)
+      const cb = READER.scope?.querySelector?.('.keepReading');
+      if(cb){
+        cb.checked  = READER.continuous;
+        cb.disabled = !!READER.forced; // ★
+      }
+    
       READER.q   = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
       READER.idx = 0;
-
-      // UI 동기화
+    
       bindKeepReading(READER.scope);
       updateInlineSpeakBtn();
-
+    
       setTimeout(()=>{
         try{ READER.synth && READER.synth.cancel(); }catch(_){}
         playNextInQueueInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
       }, 120);
-    }else{
-      // 재생 중이 아니면 버튼 라벨을 '낭독'으로 보장
-      if (READER.btn) READER.btn.textContent = '낭독';
     }
+
   }
 });
 
