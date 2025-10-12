@@ -652,8 +652,9 @@ function playNextInQueueInline(book, chap, idx){
     if(READER.continuous && goToNextParagraphInline(book, chap, idx)){
       // === 새 단락 도착 ===
       // 새 단락의 로컬 체크 상태로 갱신
-      const nextCb = READER.scope?.querySelector?.('.keepReading');
-      READER.continuous = !!(nextCb && nextCb.checked);
+      // (교체) 전역 continuous 유지, UI만 반영
+      const nextCb = READER.scope?.querySelector?.('.keepReading'); if(nextCb) nextCb.checked = READER.continuous;
+
 
       // 새 단락 기준으로 큐 재빌드
       READER.q = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
@@ -1000,8 +1001,8 @@ window.addEventListener('keydown', (e)=>{
     // 재생 중이었다면 곧바로 이어 읽기
     if(wasPlaying){
       // 새 단락의 로컬 "계속 낭독" 상태를 반영
-      const cb = READER.scope?.querySelector?.('.keepReading');
-      READER.continuous = !!(cb && cb.checked);
+      // (교체) 전역 continuous 유지, UI만 반영
+      const cb = READER.scope?.querySelector?.('.keepReading'); if(cb) cb.checked = READER.continuous;
 
       // 큐 재빌드
       READER.q   = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
