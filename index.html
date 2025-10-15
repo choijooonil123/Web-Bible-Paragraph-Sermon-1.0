@@ -166,6 +166,17 @@
   }
 }
 
+/* [맥락 편집기 전용] */
+.context-editor{font-family:"Noto Serif KR","Nanum Myeongjo",serif;font-size:1.05rem;line-height:1.85;letter-spacing:.02em;word-break:keep-all;background:var(--panel);color:var(--text);border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+.context-editor input[type="text"]{font-family:"Noto Serif KR","Nanum Myeongjo",serif;font-weight:600;font-size:1.12rem;letter-spacing:.01em}
+.context-editor textarea{font-family:"Noto Serif KR","Nanum Myeongjo",serif;line-height:1.9;letter-spacing:.015em;min-height:420px;caret-color:var(--accent)}
+.context-editor em,.context-editor strong,.context-editor b{color:#ffd66e;font-weight:600;font-style:normal}
+.context-editor blockquote{margin:12px 0;padding:10px 14px;border-left:3px solid var(--accent);color:#c0cad6;font-style:italic;background:rgba(255,255,255,.04);border-radius:8px}
+.context-editor ::selection{background:rgba(110,168,254,.25)}
+@media (max-width:640px){.context-editor{font-size:1rem}}
+@media (prefers-color-scheme:light){.context-editor{color:#1b2533;background:#fff;box-shadow:0 6px 16px rgba(0,0,0,.08)}.context-editor blockquote{color:#445066;background:#f7f9fc}}
+
+    
   </style>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
 </head>
@@ -980,6 +991,7 @@ function goToNextParagraphInline(book, chap, idx){
     }
     function editSermon(idx){
       const map = getSermonMap(); const arr = map[CURRENT.paraId] || []; const it = arr[idx]; if(!it) return;
+      sermonEditor.classList.remove('context-editor'); // 👈 선택적 권장
       sermonEditor.style.display = ''; sermonEditor.dataset.editing = String(idx);
       sermonTitle.value = it.title||''; sermonBody.value = it.body||''; sermonThumbs.innerHTML = '';
       (it.images||[]).forEach(src=>{ const img=new Image(); img.src=src; sermonThumbs.appendChild(img); });
