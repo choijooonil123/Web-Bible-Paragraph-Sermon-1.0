@@ -978,7 +978,12 @@ function goToNextParagraphInline(book, chap, idx){
       if (sermonEditor.dataset.ctxType) return;
       const map = getSermonMap();
       const arr = map[CURRENT.paraId] || [];
-      arr.unshift({ id: crypto.randomUUID(), title:'', body:'', images:[], date:'' });
+      arr.unshift({
+         id: crypto.randomUUID(),
+         title:'(제목 없음)',
+         body:'여기에 설교 본문 초안을 입력하세요.',
+         images:[], date:''
+      });
       map[CURRENT.paraId] = arr; setSermonMap(map);
 
       modalWrap.style.display='none'; modalWrap.setAttribute('aria-hidden','true');
@@ -1170,15 +1175,12 @@ function openSermonEditorWindow(idx){
     date: it.date || ''
   };
 
-  // ★ 팝업으로 넘길 JSON을 HTML-safe 하게 직렬화(</script>, U+2028/2029 방지)
-  const metaJSON = JSON.stringify(meta)
-    .replace(/</g, '\\u003C')
-    .replace(/\u2028/g, '\\u2028')
-    .replace(/\u2029/g, '\\u2029');
-
   const w = window.open('', '_blank', 'width=1100,height=800');
   if(!w){ alert('팝업이 차단되었습니다. 브라우저 팝업을 허용해주세요.'); return; }
 
+  // ★ 팝업 window 객체에 직접 전달 (HTML에 JSON 삽입 X)
+  w.__WBPS_META__ = meta;
+  
   const popupHTML = String.raw`<!DOCTYPE html><html lang="ko">
   <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1238,7 +1240,9 @@ function openSermonEditorWindow(idx){
       <button class="primary" id="s">저장</button>
     </footer>
     <script>
-      const meta = ${metaJSON};
+     const meta = window.__WBPS_META__ || { title:'', body:'', images:[], date:'', ref:'' };
+     // 디버깅용(팝업 콘솔에서 보기):  __WBPS_META_DEBUG__
+     window.__WBPS_META_DEBUG__ = meta;
       const t=document.getElementById('t');const b=document.getElementById('b');const th=document.getElementById('th');
       const imgs=document.getElementById('imgs');const ref=document.getElementById('ref');const dateEl=document.getElementById('date');
       const rate=document.getElementById('rate');const pitch=document.getElementById('pitch');const btnRead=document.getElementById('read');const btnStop=document.getElementById('stop');
