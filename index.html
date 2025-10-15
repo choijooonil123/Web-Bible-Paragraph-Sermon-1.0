@@ -86,8 +86,88 @@
     .thumbs img{ width:112px; height:112px; object-fit:cover; border-radius:10px; border:1px solid var(--border) }
     .editor-bar{ display:flex; gap:8px; align-items:center; flex-wrap:wrap }
     .editor-bar .grow{ flex:1 1 auto }
+    /* ─────────────────────────────────────────
+   [맥락 편집기 전용] 보기 좋은 타이포/레이아웃
+   - openSingleDocEditor()에서 sermonEditor에
+     class="context-editor" 를 붙이면 적용됨
+────────────────────────────────────────── */
+.context-editor {
+  /* 명조계(한국어) + 영문 조화 */
+  font-family: "Noto Serif KR", "Nanum Myeongjo", serif;
+  font-size: 1.05rem;
+  line-height: 1.85;
+  letter-spacing: 0.02em;
+  word-break: keep-all;
+
+  /* 카드 톤 유지 + 살짝 더 입체감 */
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+
+/* 제목 입력 */
+.context-editor input[type="text"]{
+  font-family: "Noto Serif KR", "Nanum Myeongjo", serif;
+  font-weight: 600;
+  font-size: 1.12rem;
+  letter-spacing: 0.01em;
+}
+
+/* 본문 입력 */
+.context-editor textarea{
+  font-family: "Noto Serif KR", "Nanum Myeongjo", serif;
+  line-height: 1.9;
+  letter-spacing: 0.015em;
+  min-height: 420px; /* 기존보다 약간 넉넉히 */
+  caret-color: var(--accent);
+}
+
+/* 강조 느낌 */
+.context-editor em,
+.context-editor strong,
+.context-editor b{
+  color: #ffd66e;
+  font-weight: 600;
+  font-style: normal;
+}
+
+/* 인용 느낌(붙여 넣기 시 blockquote 렌더 대비) */
+.context-editor blockquote{
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--accent);
+  color: #c0cad6;
+  font-style: italic;
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+}
+
+/* 선택 영역 색감 */
+.context-editor ::selection{
+  background: rgba(110,168,254,0.25);
+}
+
+/* 모바일 미세 조정 */
+@media (max-width:640px){
+  .context-editor{ font-size: 1rem; }
+}
+
+/* 라이트 모드 대비 */
+@media (prefers-color-scheme: light){
+  .context-editor{
+    color: #1b2533;
+    background: #fff;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  }
+  .context-editor blockquote{
+    color: #445066;
+    background: #f7f9fc;
+  }
+}
+
   </style>
-  
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -806,6 +886,7 @@ function goToNextParagraphInline(book, chap, idx){
       modalRef.textContent = `${CURRENT.book} ${CURRENT.chap}장 · ${para.title||para.ref} (${para.ref})`;
       renderSermonList();
       sermonEditor.style.display = 'none';
+      sermonEditor.classList.remove('context-editor'); // 👈 선택적 권장
       modalWrap.style.display = 'flex';
       modalWrap.setAttribute('aria-hidden','false');
       modalFooterNew.style.display = '';
@@ -838,6 +919,7 @@ function goToNextParagraphInline(book, chap, idx){
       modalRef.textContent = `${CURRENT.book} ${CURRENT.chap}장 · ${para.title||para.ref} (${para.ref}) — ${titlePrefix}`;
       sermonList.innerHTML = '';
       sermonEditor.style.display = '';
+      sermonEditor.classList.add('context-editor'); // 👈 추가
       modalWrap.style.display = 'flex';
       modalWrap.setAttribute('aria-hidden','false');
       modalFooterNew.style.display = 'none';
@@ -890,6 +972,7 @@ function goToNextParagraphInline(book, chap, idx){
 
     function startNewSermon(){
       sermonList.innerHTML = '<div class="muted" style="padding:0 14px">새 설교를 작성해 저장하면 이 단락에 붙습니다.</div>';
+      sermonEditor.classList.remove('context-editor'); // 👈 선택적 권장
       sermonEditor.style.display = '';
       sermonTitle.value = ''; sermonBody.value = ''; sermonThumbs.innerHTML = ''; sermonImages.value = '';
       sermonEditor.dataset.editing = '';
@@ -911,6 +994,7 @@ function goToNextParagraphInline(book, chap, idx){
     el('cancelEdit').onclick = ()=>{
       if(sermonEditor.dataset.ctxType){
         sermonEditor.dataset.ctxType = '';
+        sermonEditor.classList.remove('context-editor'); // 👈 추가
         modalWrap.style.display = 'none'; modalWrap.setAttribute('aria-hidden','true');
       }else{
         sermonEditor.style.display = 'none'; renderSermonList();
@@ -939,6 +1023,7 @@ function goToNextParagraphInline(book, chap, idx){
         setDocMap(key, map);
 
         sermonEditor.dataset.ctxType = '';
+        sermonEditor.classList.remove('context-editor'); // 👈 추가
         modalWrap.style.display = 'none'; modalWrap.setAttribute('aria-hidden','true');
         status(`저장됨: ${title}`);
         return;
