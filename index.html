@@ -1170,7 +1170,7 @@ function openSermonEditorWindow(idx){
     date: it.date || ''
   };
 
-  // ★ HTML-safe 직렬화(</script>, U+2028/2029 등으로 인한 조기 종료 방지)
+  // ★ 팝업으로 넘길 JSON을 HTML-safe 하게 직렬화(</script>, U+2028/2029 방지)
   const metaJSON = JSON.stringify(meta)
     .replace(/</g, '\\u003C')
     .replace(/\u2028/g, '\\u2028')
@@ -1187,7 +1187,7 @@ function openSermonEditorWindow(idx){
     <style>
       :root{--bg:#0f1115;--panel:#161922;--text:#e6e8ef;--muted:#9aa0ab;--border:#252a36;--accent:#6ea8fe;--danger:#ff6b6b}
       *{box-sizing:border-box}html,body{height:100%}
-      body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Serif KR","Nanum Myeongjo",serif;display:grid;grid-template-rows:56px 1fr 56px;gap:8px}
+      body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Serif KR","Nanum Myeong조",serif;display:grid;grid-template-rows:56px 1fr 56px;gap:8px}
       header,footer{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--border)}
       footer{border-top:1px solid var(--border);border-bottom:none}
       .grow{flex:1 1 auto}
@@ -1208,12 +1208,6 @@ function openSermonEditorWindow(idx){
       .pill{display:flex;gap:8px;align-items:center;border:1px solid var(--border);background:color-mix(in hsl,var(--panel) 80%,black 8%);padding:6px 8px;border-radius:10px}
       .ctrl{appearance:none;width:140px;height:6px;border-radius:999px;background:#2a3040;outline:none}
       @media (max-width:640px){textarea{min-height:48vh}}
-      /* context-editor와 같은 타이포 */
-      input[type="text"]{font-family:"Noto Serif KR","Nanum Myeongjo",serif;font-weight:600;font-size:1.12rem;letter-spacing:.01em}
-      textarea{font-family:"Noto Serif KR","Nanum Myeongjo",serif;line-height:1.9;letter-spacing:.015em;caret-color:var(--accent)}
-      ::selection{background:rgba(110,168,254,.25)}
-      em,strong,b{color:#ffd66e;font-weight:600;font-style:normal}
-      blockquote{margin:12px 0;padding:10px 14px;border-left:3px solid var(--accent);color:#c0cad6;font-style:italic;background:rgba(255,255,255,.04);border-radius:8px}
     </style>
   </head>
   <body>
@@ -1251,12 +1245,11 @@ function openSermonEditorWindow(idx){
 
       function stripBlankLines(s){return String(s||'').split(/\\r?\\n/).filter(l=>l.trim()!=='').join('\\n');}
 
-      // ★ 여기서 제목/본문 값을 실제 DOM에 주입
+      // ★ 제목/본문 주입
       ref.textContent='— '+meta.ref;
       dateEl.textContent=meta.date?('최근 저장: '+meta.date):'';
       t.value=meta.title||'';
       b.value=meta.body||'';
-
       (meta.images||[]).forEach(src=>{const im=new Image();im.src=src;th.appendChild(im)});
 
       b.addEventListener('blur',()=>{b.value=stripBlankLines(b.value);});
@@ -1273,7 +1266,6 @@ function openSermonEditorWindow(idx){
       function speakText(txt){if(!synth){alert('이 브라우저는 음성합성을 지원하지 않습니다.');return}try{synth.cancel()}catch(e){}const u=new SpeechSynthesisUtterance(txt);u.lang='ko-KR';u.rate=parseFloat(rate.value||'0.95');u.pitch=parseFloat(pitch.value||'1.0');synth.speak(u)}
       btnRead.onclick=()=>{b.value=stripBlankLines(b.value);const txt=[(t.value||'').trim(),(b.value||'').replace(/\\n{2,}/g,'. ').replace(/\\n/g,' ').trim()].filter(Boolean).join('. ');if(!txt){alert('낭독할 내용이 없습니다.');return}speakText(txt);};
       btnStop.onclick=()=>{try{synth&&synth.cancel()}catch(e){}};
-
       window.addEventListener('keydown',e=>{if(e.key.toLowerCase()==='s'&&e.ctrlKey){e.preventDefault();btnRead.click()}});
     <\/script>
   </body></html>`;
@@ -1282,24 +1274,22 @@ function openSermonEditorWindow(idx){
   w.document.write(popupHTML);
   w.document.close();
 
-  // 부모창으로 저장/삭제 결과 수신
+  // 부모창 응답 수신
   const onMsg = (ev)=>{
     const data = ev?.data||{};
     if(!data.type) return;
-
     const map = getSermonMap();
     const arr = map[CURRENT.paraId] || [];
 
     if(data.type==='sermon-save'){
       const now = new Date();
       const date = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-      if(arr[idx]){ arr[idx] = { ...arr[idx], title: data.title, body: data.body, images: data.images, date }; }
+      if(arr[idx]) arr[idx] = { ...arr[idx], title: data.title, body: data.body, images: data.images, date };
       map[CURRENT.paraId] = arr; setSermonMap(map);
       status('설교가 저장되었습니다.');
       renderSermonList();
       window.removeEventListener('message', onMsg);
     }
-
     if(data.type==='sermon-delete'){
       if(arr[idx]) arr.splice(idx,1);
       map[CURRENT.paraId] = arr; setSermonMap(map);
@@ -1310,6 +1300,7 @@ function openSermonEditorWindow(idx){
   };
   window.addEventListener('message', onMsg);
 }
+
 
   </script>
 </body>
