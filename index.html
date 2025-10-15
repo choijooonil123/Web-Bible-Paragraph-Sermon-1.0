@@ -86,97 +86,45 @@
     .thumbs img{ width:112px; height:112px; object-fit:cover; border-radius:10px; border:1px solid var(--border) }
     .editor-bar{ display:flex; gap:8px; align-items:center; flex-wrap:wrap }
     .editor-bar .grow{ flex:1 1 auto }
-    /* ─────────────────────────────────────────
-   [맥락 편집기 전용] 보기 좋은 타이포/레이아웃
-   - openSingleDocEditor()에서 sermonEditor에
-     class="context-editor" 를 붙이면 적용됨
-────────────────────────────────────────── */
-.context-editor {
-  /* 명조계(한국어) + 영문 조화 */
-  font-family: "Noto Serif KR", "Nanum Myeongjo", serif;
-  font-size: 1.05rem;
-  line-height: 1.85;
-  letter-spacing: 0.02em;
-  word-break: keep-all;
 
-  /* 카드 톤 유지 + 살짝 더 입체감 */
-  background: var(--panel);
-  color: var(--text);
-  border-radius: 12px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-}
-
-/* 제목 입력 */
-.context-editor input[type="text"]{
-  font-family: "Noto Serif KR", "Nanum Myeongjo", serif;
-  font-weight: 600;
-  font-size: 1.12rem;
-  letter-spacing: 0.01em;
-}
-
-/* 본문 입력 */
-.context-editor textarea{
-  font-family: "Noto Serif KR", "Nanum Myeongjo", serif;
-  line-height: 1.9;
-  letter-spacing: 0.015em;
-  min-height: 420px; /* 기존보다 약간 넉넉히 */
-  caret-color: var(--accent);
-}
-
-/* 강조 느낌 */
-.context-editor em,
-.context-editor strong,
-.context-editor b{
-  color: #ffd66e;
-  font-weight: 600;
-  font-style: normal;
-}
-
-/* 인용 느낌(붙여 넣기 시 blockquote 렌더 대비) */
-.context-editor blockquote{
-  margin: 12px 0;
-  padding: 10px 14px;
-  border-left: 3px solid var(--accent);
-  color: #c0cad6;
-  font-style: italic;
-  background: rgba(255,255,255,0.04);
-  border-radius: 8px;
-}
-
-/* 선택 영역 색감 */
-.context-editor ::selection{
-  background: rgba(110,168,254,0.25);
-}
-
-/* 모바일 미세 조정 */
-@media (max-width:640px){
-  .context-editor{ font-size: 1rem; }
-}
-
-/* 라이트 모드 대비 */
-@media (prefers-color-scheme: light){
-  .context-editor{
-    color: #1b2533;
-    background: #fff;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-  }
-  .context-editor blockquote{
-    color: #445066;
-    background: #f7f9fc;
-  }
-}
-
-/* [맥락 편집기 전용] */
-.context-editor{font-family:"Noto Serif KR","Nanum Myeongjo",serif;font-size:1.05rem;line-height:1.85;letter-spacing:.02em;word-break:keep-all;background:var(--panel);color:var(--text);border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.25)}
-.context-editor input[type="text"]{font-family:"Noto Serif KR","Nanum Myeongjo",serif;font-weight:600;font-size:1.12rem;letter-spacing:.01em}
-.context-editor textarea{font-family:"Noto Serif KR","Nanum Myeongjo",serif;line-height:1.9;letter-spacing:.015em;min-height:420px;caret-color:var(--accent)}
-.context-editor em,.context-editor strong,.context-editor b{color:#ffd66e;font-weight:600;font-style:normal}
-.context-editor blockquote{margin:12px 0;padding:10px 14px;border-left:3px solid var(--accent);color:#c0cad6;font-style:italic;background:rgba(255,255,255,.04);border-radius:8px}
-.context-editor ::selection{background:rgba(110,168,254,.25)}
-@media (max-width:640px){.context-editor{font-size:1rem}}
-@media (prefers-color-scheme:light){.context-editor{color:#1b2533;background:#fff;box-shadow:0 6px 16px rgba(0,0,0,.08)}.context-editor blockquote{color:#445066;background:#f7f9fc}}
-
-    
+    /* [맥락 편집기 전용] 보기 좋은 타이포/레이아웃 */
+    .context-editor {
+      font-family: "Noto Serif KR", "Nanum Myeongjo", serif;
+      font-size: 1.05rem;
+      line-height: 1.85;
+      letter-spacing: 0.02em;
+      word-break: keep-all;
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    }
+    .context-editor input[type="text"]{
+      font-family: "Noto Serif KR", "Nanum Myeongjo", serif;
+      font-weight: 600;
+      font-size: 1.12rem;
+      letter-spacing: 0.01em;
+    }
+    .context-editor textarea{
+      font-family: "Noto Serif KR", "Nanum Myeongjo", serif;
+      line-height: 1.9;
+      letter-spacing: 0.015em;
+      min-height: 420px;
+      caret-color: var(--accent);
+    }
+    .context-editor em,.context-editor strong,.context-editor b{
+      color:#ffd66e;font-weight:600;font-style:normal
+    }
+    .context-editor blockquote{
+      margin:12px 0;padding:10px 14px;border-left:3px solid var(--accent);
+      color:#c0cad6;font-style:italic;background:rgba(255,255,255,.04);border-radius:8px
+    }
+    .context-editor ::selection{background:rgba(110,168,254,.25)}
+    @media (max-width:640px){.context-editor{font-size:1rem}}
+    @media (prefers-color-scheme:light){
+      .context-editor{color:#1b2533;background:#fff;box-shadow:0 6px 16px rgba(0,0,0,.08)}
+      .context-editor blockquote{color:#445066;background:#f7f9fc}
+    }
   </style>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
 </head>
@@ -185,17 +133,13 @@
   <header>
     <h1>Web Bible – Paragraph Sermon</h1>
 
-    <div class="pill">
-      <button id="btnSaveJSON">JSON 저장</button>
-    </div>
-
+    <div class="pill"><button id="btnSaveJSON">JSON 저장</button></div>
 
     <div class="pill">
       <button id="btnExportAll">내보내기</button>
       <input id="importFile" type="file" accept="application/json" style="display:none">
       <button id="btnImportAll">가져오기</button>
     </div>
-
 
     <div class="pill">
       <span class="muted">음성</span>
@@ -259,78 +203,36 @@
 
   <script>
     /* --------- Utils --------- */
-
-function syncCurrentFromOpen(){
-  const openPara = treeEl.querySelector('details.para[open]');
-  if(!openPara) return false;
-
-  const t = openPara.querySelector('summary .ptitle');
-  if(!t) return false;
-
-  const book = t.dataset.book;
-  const chap = parseInt(t.dataset.ch, 10);
-  const idx  = parseInt(t.dataset.idx, 10);
-
-  const para = BIBLE?.books?.[book]?.[chap]?.paras?.[idx];
-  if(!para) return false;
-
-  CURRENT.book   = book;
-  CURRENT.chap   = chap;
-  CURRENT.paraIdx= idx;
-  CURRENT.paraId = `${book}|${chap}|${para.ref}`;
-  return true;
-}
-    
     const el = id => document.getElementById(id);
+    const treeEl = el('tree'), statusEl = el('status');
     function status(msg){ statusEl.textContent = msg; }
     function escapeHtml(s){ return (s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
     function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
     function stripBlankLines(s){return String(s||'').split(/\r?\n/).filter(l=>l.trim()!=='').join('\n');}
 
-    
-    // ==== 인라인 제목 편집 ====
-    function startInlineTitleEdit(el, book, chap, idx){
-      const old = el.textContent.trim();
-      el.setAttribute('contenteditable','plaintext-only');
-      el.spellcheck = false;
-      el.classList.add('editing');
-      el.focus();
-      const sel = window.getSelection();
-      const range = document.createRange();
-      range.selectNodeContents(el);
-      sel.removeAllRanges(); sel.addRange(range);
-
-      function finish(commit){
-        el.removeAttribute('contenteditable');
-        el.classList.remove('editing');
-        document.removeEventListener('keydown', onKey, true);
-        el.removeEventListener('blur', onBlur);
-        if(commit){
-          const newTitle = el.textContent.trim() || '(제목 없음)';
-          updateParaTitle(book, chap, idx, newTitle);
-          status('단락 제목이 변경되었습니다. (Ctrl+Shift+S로 JSON 저장 가능)');
-        }else{
-          el.textContent = old;
-          status('제목 편집이 취소되었습니다.');
-        }
-      }
-      function onKey(e){
-        if(e.key === 'Enter'){ e.preventDefault(); finish(true); }
-        if(e.key === 'Escape'){ e.preventDefault(); finish(false); }
-      }
-      function onBlur(){ finish(true); }
-      document.addEventListener('keydown', onKey, true);
-      el.addEventListener('blur', onBlur);
+    function syncCurrentFromOpen(){
+      const openPara = treeEl.querySelector('details.para[open]');
+      if(!openPara) return false;
+      const t = openPara.querySelector('summary .ptitle');
+      if(!t) return false;
+      const book = t.dataset.book;
+      const chap = parseInt(t.dataset.ch, 10);
+      const idx  = parseInt(t.dataset.idx, 10);
+      const para = BIBLE?.books?.[book]?.[chap]?.paras?.[idx];
+      if(!para) return false;
+      CURRENT.book   = book;
+      CURRENT.chap   = chap;
+      CURRENT.paraIdx= idx;
+      CURRENT.paraId = `${book}|${chap}|${para.ref}`;
+      return true;
     }
 
-    // 메모리(BIBLE) 데이터 갱신
+    // 제목 변경 반영
     function updateParaTitle(book, chap, idx, newTitle){
       try{
         const para = BIBLE?.books?.[book]?.[chap]?.paras?.[idx];
         if(!para) return;
         para.title = newTitle;
-    
-        // 여기서 ch → chap 로 수정
         const s = document.querySelector(
           `summary .ptitle[data-book="${CSS.escape(String(book))}"][data-ch="${CSS.escape(String(chap))}"][data-idx="${CSS.escape(String(idx))}"]`
         );
@@ -338,8 +240,7 @@ function syncCurrentFromOpen(){
       }catch(_){}
     }
 
-
-    // ==== JSON 내보내기(본문) ====
+    // JSON 다운로드
     function downloadBibleJSON(){
       if(!BIBLE){ alert('BIBLE 데이터가 없습니다.'); return; }
       const blob = new Blob([JSON.stringify(BIBLE, null, 2)], {type:'application/json'});
@@ -351,8 +252,7 @@ function syncCurrentFromOpen(){
       status('수정된 JSON을 다운로드했습니다.');
     }
 
-    /* ==== (신규) 전체 데이터 백업/복원 - 내보내기/가져오기 전용 코드 ==== */
-    // localStorage 키들
+    /* ==== 전체 데이터 백업/복원 ==== */
     const STORAGE_SERMON      = 'wbps.sermons.v4';
     const STORAGE_UNIT_CTX    = 'wbps.ctx.unit.v1';
     const STORAGE_WHOLE_CTX   = 'wbps.ctx.whole.v1';
@@ -364,51 +264,38 @@ function syncCurrentFromOpen(){
       const d=new Date();
       return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
-
     function exportAllData(){
-      const keys = [
-        STORAGE_SERMON, STORAGE_UNIT_CTX, STORAGE_WHOLE_CTX,
-        STORAGE_COMMENTARY, STORAGE_SUMMARY, VOICE_CHOICE_KEY
-      ];
+      const keys = [STORAGE_SERMON, STORAGE_UNIT_CTX, STORAGE_WHOLE_CTX, STORAGE_COMMENTARY, STORAGE_SUMMARY, VOICE_CHOICE_KEY];
       const payload = { __wbps:1, date: todayStr(), items:{} };
       keys.forEach(k=> payload.items[k] = localStorage.getItem(k) ?? null);
-
       const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
       const a = document.createElement('a');
       const ts = new Date();
       const tss = `${ts.getFullYear()}${String(ts.getMonth()+1).padStart(2,'0')}${String(ts.getDate()).padStart(2,'0')}-${String(ts.getHours()).padStart(2,'0')}${String(ts.getMinutes()).padStart(2,'0')}`;
       a.href = URL.createObjectURL(blob);
       a.download = `wbps-backup-${tss}.json`;
-      document.body.appendChild(a);
-      a.click();
+      document.body.appendChild(a); a.click();
       setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
       status('전체 데이터를 내보냈습니다.');
     }
-
     async function importAllData(file){
       try{
         const text = await file.text();
         const json = JSON.parse(text);
-        if(!json || json.__wbps!==1 || !json.items){
-          alert('백업 파일 형식이 아닙니다.'); return;
-        }
+        if(!json || json.__wbps!==1 || !json.items){ alert('백업 파일 형식이 아닙니다.'); return; }
         if(!confirm('이 백업으로 현재 기기의 데이터를 덮어쓸까요?')) return;
-
         Object.entries(json.items).forEach(([k,v])=>{
           if(v===null || v===undefined) localStorage.removeItem(k);
           else localStorage.setItem(k, v);
         });
-
         status('가져오기가 완료되었습니다. 페이지를 새로고침하면 반영됩니다.');
       }catch(e){
         console.error(e);
         alert('가져오기 중 오류가 발생했습니다.');
       }
     }
-    /* ==== 끝 ==== */
 
-    /* --------- Refs --------- */
-    const treeEl = el('tree'), statusEl = el('status');
+    /* --------- Refs / State --------- */
     const voiceSelect = el('voiceSelect'), testVoiceBtn = el('testVoice');
     const rateCtl = el('rateCtl'), pitchCtl = el('pitchCtl'), voiceHint = el('voiceHint');
     const modalWrap = el('modalWrap'), modalRef = el('modalRef');
@@ -438,15 +325,11 @@ function syncCurrentFromOpen(){
       await setupVoices();
     })();
 
-    // 버튼 바인딩 (내보내기/가져오기 포함)
     (function bindButtons(){
-      const btnSaveJSON = document.getElementById('btnSaveJSON');
-      if (btnSaveJSON) btnSaveJSON.addEventListener('click', downloadBibleJSON);
-
-      const btnExport = document.getElementById('btnExportAll');
-      const btnImport = document.getElementById('btnImportAll');
-      const fileInput = document.getElementById('importFile');
-
+      el('btnSaveJSON')?.addEventListener('click', downloadBibleJSON);
+      const btnExport = el('btnExportAll');
+      const btnImport = el('btnImportAll');
+      const fileInput = el('importFile');
       if (btnExport) btnExport.onclick = exportAllData;
       if (btnImport) btnImport.onclick = ()=> fileInput && fileInput.click();
       if (fileInput) fileInput.addEventListener('change', (e)=>{
@@ -686,208 +569,143 @@ function syncCurrentFromOpen(){
       const cb = scope.querySelector('.keepReading');
       if(!cb) return;
       cb.checked  = READER.continuous;
-      cb.disabled = !!READER.forced; // 강제 모드일 땐 비활성화
+      cb.disabled = !!READER.forced;
       cb.onchange = ()=>{
-        if(READER.forced){ // 강제 모드에서는 사용자의 토글을 무시
+        if(READER.forced){
           cb.checked = true;
           return;
         }
         READER.continuous = cb.checked;
       };
     }
-
     function speakVerseItemInScope(item, scope, onend){
       if(!READER.synth) return;
-    
       const u = new SpeechSynthesisUtterance(String(item.text));
       applyVoice(u);
-    
-      // onend가 드물게 안 들어오는 크롬/OS 버그 대비: 안전 종료 플래그 + 타이머
       let done = false;
       const safeEnd = ()=>{ if(done) return; done = true; onend(); };
-    
       u.onstart = ()=>{
         clearReadingHighlight(scope);
         const line = scope.querySelector(`.pline[data-verse="${item.verse}"]`);
         if(line){ line.classList.add('reading'); line.scrollIntoView({block:'center', behavior:'smooth'}); }
-        // 시작 시 이전 워치독 제거
         if (READER._wd){ clearTimeout(READER._wd); READER._wd = null; }
-        // 대략 길이에 비례해 종료 보조 타이머 설정 (문자당 65ms 기준, 최소 800ms)
         const base = Math.max(800, Math.round(item.text.length * 65));
-        // rate가 빠르면 실제 재생시간이 짧으므로 보정
         const rate = u.rate || 1;
         const estimate = Math.max(600, Math.round(base / rate)) + 1200;
         READER._wd = setTimeout(safeEnd, estimate);
       };
       u.onend   = safeEnd;
       u.onerror = safeEnd;
-    
       READER.synth.speak(u);
     }
-
-function toggleSpeakInline(book, chap, idx, paraDetailsEl, btnEl){
-    if(!READER.synth) return alert('이 브라우저는 음성합성을 지원하지 않습니다.');
-    const sameScope = READER.playing && READER.scope === paraDetailsEl;
-    if(READER.playing && sameScope){ stopSpeakInline(); return; }
-    
-    // ★ 강제 이어읽기 모드로 진입
-    READER.forced = true;
-    READER.continuous = true; // 체크박스와 무관하게 켠다
-    
-    READER.q = buildQueueFrom(book, chap, idx);
-    READER.idx = 0;
-    READER.playing = true;
-    READER.scope = paraDetailsEl;
-    READER.btn = btnEl;
-    
-    try{ READER.synth.cancel(); }catch(e){}
-    
-    // 체크박스 UI를 강제 모드/상태에 맞춰 동기화
-    bindKeepReading(READER.scope);
-    updateInlineSpeakBtn();
-    playNextInQueueInline(book, chap, idx);
-
-}
-
-
-function playNextInQueueInline(book, chap, idx){
-  if(!READER.playing) return;
-
-  // 단락 끝
-  if(READER.idx >= READER.q.length){
-    // 계속 낭독 켜져 있으면 다음 단락 자동 이동
-    if(READER.continuous && goToNextParagraphInline(book, chap, idx)){
-      // === 새 단락 도착 ===
-      // 새 단락의 로컬 체크 상태로 갱신
-      // (교체) 전역 continuous 유지, UI만 반영
-      // === 새 단락 도착 ===
-      // 전역 continuous 유지 + 새 단락 체크 UI만 반영(+강제 모드면 비활성)
-      const nextCb = READER.scope?.querySelector?.('.keepReading');
-      if(nextCb){
-        nextCb.checked  = READER.continuous;
-        nextCb.disabled = !!READER.forced; // ★ 강제 모드면 비활성
-      }
-      
-      // 새 단락 기준으로 큐 재빌드
-      READER.q = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
+    function toggleSpeakInline(book, chap, idx, paraDetailsEl, btnEl){
+      if(!READER.synth) return alert('이 브라우저는 음성합성을 지원하지 않습니다.');
+      const sameScope = READER.playing && READER.scope === paraDetailsEl;
+      if(READER.playing && sameScope){ stopSpeakInline(); return; }
+      READER.forced = true;
+      READER.continuous = true;
+      READER.q = buildQueueFrom(book, chap, idx);
       READER.idx = 0;
-      
-      // 새 단락 UI 동기화
+      READER.playing = true;
+      READER.scope = paraDetailsEl;
+      READER.btn = btnEl;
+      try{ READER.synth.cancel(); }catch(e){}
       bindKeepReading(READER.scope);
       updateInlineSpeakBtn();
-
-
-      // 크롬 onend 직후 speak 무시 방지
-      setTimeout(()=>{
-        try{ READER.synth.cancel(); }catch(e){}
-        playNextInQueueInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
-      }, 120);
-      return;
+      playNextInQueueInline(book, chap, idx);
     }
-    // 계속 낭독이 꺼져 있거나 더 이상 이동 불가
-    stopSpeakInline();
-    return;
-  }
-
-  // 같은 단락 내 다음 구절 재생
-  const item = READER.q[READER.idx];
-  speakVerseItemInScope(item, READER.scope, ()=>{
-    READER.idx++;
-    playNextInQueueInline(book, chap, idx);
-  });
-}
-
-
-function stopSpeakInline(){
-  READER.playing = false;
-  READER.forced  = false; // ★ 강제 모드 해제
-  try{ READER.synth && READER.synth.cancel(); }catch(e){}
-  if (READER._wd){ clearTimeout(READER._wd); READER._wd = null; }
-
-  // 체크박스 UI 복구 (가능하면)
-  if(READER.scope){
-    const cb = READER.scope.querySelector?.('.keepReading');
-    if(cb) cb.disabled = false;
-    clearReadingHighlight(READER.scope);
-  }
-
-  updateInlineSpeakBtn();
-  READER.scope = null; READER.btn = null;
-}
-
-
+    function playNextInQueueInline(book, chap, idx){
+      if(!READER.playing) return;
+      if(READER.idx >= READER.q.length){
+        if(READER.continuous && goToNextParagraphInline(book, chap, idx)){
+          const nextCb = READER.scope?.querySelector?.('.keepReading');
+          if(nextCb){ nextCb.checked = READER.continuous; nextCb.disabled = !!READER.forced; }
+          READER.q = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
+          READER.idx = 0;
+          bindKeepReading(READER.scope);
+          updateInlineSpeakBtn();
+          setTimeout(()=>{ try{ READER.synth.cancel(); }catch(e){} playNextInQueueInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx); }, 120);
+          return;
+        }
+        stopSpeakInline();
+        return;
+      }
+      const item = READER.q[READER.idx];
+      speakVerseItemInScope(item, READER.scope, ()=>{ READER.idx++; playNextInQueueInline(book, chap, idx); });
+    }
+    function stopSpeakInline(){
+      READER.playing = false;
+      READER.forced  = false;
+      try{ READER.synth && READER.synth.cancel(); }catch(e){}
+      if (READER._wd){ clearTimeout(READER._wd); READER._wd = null; }
+      if(READER.scope){
+        const cb = READER.scope.querySelector?.('.keepReading');
+        if(cb) cb.disabled = false;
+        clearReadingHighlight(READER.scope);
+      }
+      updateInlineSpeakBtn();
+      READER.scope = null; READER.btn = null;
+    }
     function updateInlineSpeakBtn(){ if(READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독'; }
-
-function goToNextParagraphInline(book, chap, idx){
-  const chObj = BIBLE.books[book][chap];
-
-  const booksEls = [...treeEl.children];
-  const bIdx = Object.keys(BIBLE.books).indexOf(book);
-  const bookEl = booksEls[bIdx]; if(!bookEl) return false;
-
-  const chaptersEls = bookEl.querySelectorAll(':scope > .chapters > details');
-  const chapNums = Object.keys(BIBLE.books[book]).map(n=>parseInt(n,10)).sort((a,b)=>a-b);
-  const chPos = chapNums.indexOf(ch);
-  const chapEl = chaptersEls[chPos]; if(!chapEl) return false;
-
-  const paraEls = chapEl.querySelectorAll(':scope > .paras > details.para');
-
-  // 이전 단락 버튼 라벨 복구
-  if (READER.btn) READER.btn.textContent = '낭독';
-
-  // 같은 장의 다음 단락
-  if(idx < chObj.paras.length-1){
-    const nextEl = paraEls[idx+1];
-    if(nextEl){
-      chapEl.open = true; nextEl.open = true;
-      CURRENT.book = book; CURRENT.chap = chap; CURRENT.paraIdx = idx+1;
-      READER.scope = nextEl;
-      READER.btn = nextEl.querySelector('.speakBtn');
-      if (READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독';
-      return true;
-    }
-  }
-
-  // 다음 장 첫 단락
-  if(chPos >= 0 && chPos < chapNums.length-1){
-    const nextChap = chapNums[chPos+1];
-    const nextChapEl = chaptersEls[chPos+1];
-    if(nextChapEl){
-      const nextParas = BIBLE.books[book][nextChap].paras||[];
-      if(nextParas.length){
-        const nextParaEl = nextChapEl.querySelector(':scope > .paras > details.para');
-        nextChapEl.open = true; if(nextParaEl) nextParaEl.open = true;
-        CURRENT.book = book; CURRENT.chap = nextChap; CURRENT.paraIdx = 0;
-        READER.scope = nextParaEl;
-        READER.btn = nextParaEl?.querySelector('.speakBtn') || null;
-        if (READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독';
-        return true;
+    function goToNextParagraphInline(book, chap, idx){
+      const chObj = BIBLE.books[book][chap];
+      const booksEls = [...treeEl.children];
+      const bIdx = Object.keys(BIBLE.books).indexOf(book);
+      const bookEl = booksEls[bIdx]; if(!bookEl) return false;
+      const chaptersEls = bookEl.querySelectorAll(':scope > .chapters > details');
+      const chapNums = Object.keys(BIBLE.books[book]).map(n=>parseInt(n,10)).sort((a,b)=>a-b);
+      const chPos = chapNums.indexOf(ch);
+      const chapEl = chaptersEls[chPos]; if(!chapEl) return false;
+      const paraEls = chapEl.querySelectorAll(':scope > .paras > details.para');
+      if (READER.btn) READER.btn.textContent = '낭독';
+      if(idx < chObj.paras.length-1){
+        const nextEl = paraEls[idx+1];
+        if(nextEl){
+          chapEl.open = true; nextEl.open = true;
+          CURRENT.book = book; CURRENT.chap = chap; CURRENT.paraIdx = idx+1;
+          READER.scope = nextEl;
+          READER.btn = nextEl.querySelector('.speakBtn');
+          if (READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독';
+          return true;
+        }
       }
-    }
-  }
-
-  // 다음 책 첫 장 첫 단락
-  const bookNames = Object.keys(BIBLE.books);
-  const bPos = bookNames.indexOf(book);
-  if(bPos >= 0 && bPos < bookNames.length-1){
-    const nextBook = bookNames[bPos+1];
-    const nextBookEl = booksEls[bPos+1];
-    if(nextBookEl){
-      const firstChap = Math.min(...Object.keys(BIBLE.books[nextBook]).map(n=>parseInt(n,10)));
-      const nextChapEl = nextBookEl.querySelector(':scope > .chapters > details');
-      const nextParaEl = nextChapEl?.querySelector(':scope > .paras > details.para');
-      if(nextParaEl){
-        nextBookEl.open = true; nextChapEl.open = true; nextParaEl.open = true;
-        CURRENT.book = nextBook; CURRENT.chap = firstChap; CURRENT.paraIdx = 0;
-        READER.scope = nextParaEl;
-        READER.btn = nextParaEl.querySelector('.speakBtn');
-        if (READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독';
-        return true;
+      if(chPos >= 0 && chPos < chapNums.length-1){
+        const nextChap = chapNums[chPos+1];
+        const nextChapEl = chaptersEls[chPos+1];
+        if(nextChapEl){
+          const nextParas = BIBLE.books[book][nextChap].paras||[];
+          if(nextParas.length){
+            const nextParaEl = nextChapEl.querySelector(':scope > .paras > details.para');
+            nextChapEl.open = true; if(nextParaEl) nextParaEl.open = true;
+            CURRENT.book = book; CURRENT.chap = nextChap; CURRENT.paraIdx = 0;
+            READER.scope = nextParaEl;
+            READER.btn = nextParaEl?.querySelector('.speakBtn') || null;
+            if (READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독';
+            return true;
+          }
+        }
       }
+      const bookNames = Object.keys(BIBLE.books);
+      const bPos = bookNames.indexOf(book);
+      if(bPos >= 0 && bPos < bookNames.length-1){
+        const nextBook = bookNames[bPos+1];
+        const nextBookEl = booksEls[bPos+1];
+        if(nextBookEl){
+          const firstChap = Math.min(...Object.keys(BIBLE.books[nextBook]).map(n=>parseInt(n,10)));
+          const nextChapEl = nextBookEl.querySelector(':scope > .chapters > details');
+          const nextParaEl = nextChapEl?.querySelector(':scope > .paras > details.para');
+          if(nextParaEl){
+            nextBookEl.open = true; nextChapEl.open = true; nextParaEl.open = true;
+            CURRENT.book = nextBook; CURRENT.chap = firstChap; CURRENT.paraIdx = 0;
+            READER.scope = nextParaEl;
+            READER.btn = nextParaEl.querySelector('.speakBtn');
+            if (READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독';
+            return true;
+          }
+        }
+      }
+      return false;
     }
-  }
-  return false;
-}
 
     /* --------- Sermon / Context Editors --------- */
     function getSermonMap(){ try{ return JSON.parse(localStorage.getItem(STORAGE_SERMON)||'{}'); }catch{ return {}; } }
@@ -901,7 +719,7 @@ function goToNextParagraphInline(book, chap, idx){
       modalRef.textContent = `${CURRENT.book} ${CURRENT.chap}장 · ${para.title||para.ref} (${para.ref})`;
       renderSermonList();
       sermonEditor.style.display = 'none';
-      sermonEditor.classList.add('context-editor');    // 항상 적용
+      sermonEditor.classList.add('context-editor');
       modalWrap.style.display = 'flex';
       modalWrap.setAttribute('aria-hidden','false');
       modalFooterNew.style.display = '';
@@ -934,7 +752,7 @@ function goToNextParagraphInline(book, chap, idx){
       modalRef.textContent = `${CURRENT.book} ${CURRENT.chap}장 · ${para.title||para.ref} (${para.ref}) — ${titlePrefix}`;
       sermonList.innerHTML = '';
       sermonEditor.style.display = '';
-      sermonEditor.classList.add('context-editor'); // 👈 추가
+      sermonEditor.classList.add('context-editor');
       modalWrap.style.display = 'flex';
       modalWrap.setAttribute('aria-hidden','false');
       modalFooterNew.style.display = 'none';
@@ -978,21 +796,15 @@ function goToNextParagraphInline(book, chap, idx){
       if (sermonEditor.dataset.ctxType) return;
       const map = getSermonMap();
       const arr = map[CURRENT.paraId] || [];
-      arr.unshift({
-         id: crypto.randomUUID(),
-         title:'(제목 없음)',
-         body:'여기에 설교 본문 초안을 입력하세요.',
-         images:[], date:''
-      });
+      arr.unshift({ id: crypto.randomUUID(), title:'', body:'', images:[], date:'' });
       map[CURRENT.paraId] = arr; setSermonMap(map);
-
       modalWrap.style.display='none'; modalWrap.setAttribute('aria-hidden','true');
       openSermonEditorWindow(0);
     };
 
     function startNewSermon(){
       sermonList.innerHTML = '<div class="muted" style="padding:0 14px">새 설교를 작성해 저장하면 이 단락에 붙습니다.</div>';
-      sermonEditor.classList.add('context-editor');    // 항상 적용
+      sermonEditor.classList.add('context-editor');
       sermonEditor.style.display = '';
       sermonTitle.value = ''; sermonBody.value = ''; sermonThumbs.innerHTML = ''; sermonImages.value = '';
       sermonEditor.dataset.editing = '';
@@ -1000,7 +812,7 @@ function goToNextParagraphInline(book, chap, idx){
     }
     function editSermon(idx){
       const map = getSermonMap(); const arr = map[CURRENT.paraId] || []; const it = arr[idx]; if(!it) return;
-      sermonEditor.classList.add('context-editor');    // 항상 적용
+      sermonEditor.classList.add('context-editor');
       sermonEditor.style.display = ''; sermonEditor.dataset.editing = String(idx);
       sermonTitle.value = it.title||''; sermonBody.value = it.body||''; sermonThumbs.innerHTML = '';
       (it.images||[]).forEach(src=>{ const img=new Image(); img.src=src; sermonThumbs.appendChild(img); });
@@ -1044,7 +856,7 @@ function goToNextParagraphInline(book, chap, idx){
         setDocMap(key, map);
 
         sermonEditor.dataset.ctxType = '';
-        sermonEditor.classList.remove('context-editor'); // 👈 추가
+        sermonEditor.classList.remove('context-editor');
         modalWrap.style.display = 'none'; modalWrap.setAttribute('aria-hidden','true');
         status(`저장됨: ${title}`);
         return;
@@ -1084,406 +896,205 @@ function goToNextParagraphInline(book, chap, idx){
       if(!silent) status('설교 낭독을 중지했습니다.'); editorSpeakBtn.textContent = '낭독';
     }
 
-    /* --------- Misc --------- */
-   
-window.addEventListener('keydown', (e)=>{
-  // 저장 핫키 (Ctrl+Shift+S)
-  if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='s'){
-    e.preventDefault();
-    downloadBibleJSON();
-    return;
-  }
-
-  // 입력 포커스 중이면 무시
-  if(e.target && ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
-
-  const key = e.key.toLowerCase();
-
-  // S = 현재 열린 단락 기준 낭독 토글
-  if(key === 's'){
-    e.preventDefault();
-    // 혹시 토글 이벤트가 안 탔을 때를 대비해 열린 단락으로 상태 보정
-    syncCurrentFromOpen();
-
-    const openPara = treeEl.querySelector('details.para[open]');
-    if(openPara && CURRENT.book!=null){
-      const btn = openPara.querySelector('.speakBtn');
-      toggleSpeakInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx, openPara, btn);
-    }
-    return;
-  }
-
-  // N = 다음 단락으로 이동 (재생 중이면 자동 이어읽기)
-  if(key === 'n'){
-    e.preventDefault();
-
-    // 열린 단락 기준으로 상태 보정
-    if(!syncCurrentFromOpen()) return;
-
-    const wasPlaying = !!READER.playing;
-
-    // 현재 발화 정리
-    try{ READER.synth && READER.synth.cancel(); }catch(_){}
-    if (READER._wd){ clearTimeout(READER._wd); READER._wd = null; }
-
-    // 재생 의도 유지
-    READER.playing = wasPlaying;
-
-    // 다음 단락 이동
-    const moved = goToNextParagraphInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
-    if(!moved) return;
-
-    // 재생 중이었다면 곧바로 이어 읽기
-    if (wasPlaying){
-      // 전역 continuous 유지 + 새 단락 체크 UI 동기화(+강제 모드면 비활성)
-      const cb = READER.scope?.querySelector?.('.keepReading');
-      if(cb){
-        cb.checked  = READER.continuous;
-        cb.disabled = !!READER.forced; // ★
+    /* --------- Hotkeys --------- */
+    window.addEventListener('keydown', (e)=>{
+      if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='s'){
+        e.preventDefault();
+        downloadBibleJSON();
+        return;
       }
-    
-      READER.q   = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
-      READER.idx = 0;
-    
-      bindKeepReading(READER.scope);
-      updateInlineSpeakBtn();
-    
-      setTimeout(()=>{
+      if(e.target && ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+      const key = e.key.toLowerCase();
+      if(key === 's'){
+        e.preventDefault();
+        syncCurrentFromOpen();
+        const openPara = treeEl.querySelector('details.para[open]');
+        if(openPara && CURRENT.book!=null){
+          const btn = openPara.querySelector('.speakBtn');
+          toggleSpeakInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx, openPara, btn);
+        }
+        return;
+      }
+      if(key === 'n'){
+        e.preventDefault();
+        if(!syncCurrentFromOpen()) return;
+        const wasPlaying = !!READER.playing;
         try{ READER.synth && READER.synth.cancel(); }catch(_){}
-        playNextInQueueInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
-      }, 120);
-    }
-
-  }
-});
-
-
-
-/* --------- Sermon Editor Popup (Slim) --------- */
-function openSermonEditorWindow(idx){
-  const map = getSermonMap();
-  const arr = map[CURRENT.paraId] || [];
-  const it  = arr[idx];
-  if(!it){ alert('편집할 설교를 찾을 수 없습니다.'); return; }
-
-  const meta = {
-    paraId: CURRENT.paraId,
-    ref: `${CURRENT.book} ${CURRENT.chap}장`,
-    title: it.title || '',
-    body:  it.body  || '',
-    images: it.images || [],
-    date: it.date || ''
-  };
-
-const w = window.open('', '_blank', 'width=1100,height=800');
-if (!w) { alert('팝업이 차단되었습니다. 브라우저 팝업을 허용해주세요.'); return; }
-
-// ✅ 이 줄이 “제목/본문 주입”의 핵심입니다.
-w.__WBPS_META__ = meta;
-
-w.document.open();
-w.document.write(popupHTML);
-w.document.close();
-  
-const popupHTML = String.raw`<!DOCTYPE html><html lang="ko">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>설교 편집</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
-  <style>
-    :root{--bg:#0f1115;--panel:#161922;--text:#e6e8ef;--muted:#9aa0ab;--border:#252a36;--accent:#6ea8fe;--danger:#ff6b6b}
-    *{box-sizing:border-box}html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Serif KR","Nanum Myeongjo",serif;display:grid;grid-template-rows:56px 1fr 56px;gap:8px}
-    header,footer{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--border)}
-    footer{border-top:1px solid var(--border);border-bottom:none}
-    .grow{flex:1 1 auto}
-    header strong{font-size:15px;letter-spacing:.01em}
-    main{padding:0 12px 12px}
-    .row{display:grid;gap:8px;margin-bottom:10px}
-    input[type="text"],textarea{width:100%;background:#161922;color:#e6e8ef;border:1px solid #2a3040;border-radius:10px;padding:12px 14px;box-shadow:0 6px 16px rgba(0,0,0,.18)}
-    input[type="text"]{font-weight:600;font-size:1.12rem;letter-spacing:.01em}
-    textarea{min-height:56vh;resize:vertical;line-height:1.9;letter-spacing:.015em;caret-color:var(--accent)}
-    .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-    .thumbs img{width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--border)}
-    .muted{color:var(--muted)}
-    button{background:color-mix(in hsl,var(--panel) 65%,black 10%);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px 12px;cursor:pointer;transition:border-color .15s,transform .04s}
-    button:hover{border-color:color-mix(in hsl,var(--border) 75%,var(--accent) 25%)}
-    button:active{transform:translateY(1px)}
-    .primary{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 78%,white 10%),color-mix(in srgb,var(--accent) 72%,black 22%));border-color:color-mix(in srgb,var(--accent) 70%,black 10%)}
-    .danger{border-color:var(--danger);color:#ffd7d7;background:transparent}
-    .pill{display:flex;gap:8px;align-items:center;border:1px solid var(--border);background:color-mix(in hsl,var(--panel) 80%,black 8%);padding:6px 8px;border-radius:10px}
-    .ctrl{appearance:none;width:140px;height:6px;border-radius:999px;background:#2a3040;outline:none}
-    select{background:transparent;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:4px 6px}
-    option{color:#000}
-    /* 본문 타이포 */
-    ::selection{background:rgba(110,168,254,.25)}
-    em,strong,b{color:#ffd66e;font-weight:600;font-style:normal}
-    blockquote{margin:12px 0;padding:10px 14px;border-left:3px solid var(--accent);color:#c0cad6;font-style:italic;background:rgba(255,255,255,.04);border-radius:8px}
-  </style>
-</head>
-<body>
-  <header>
-    <strong>설교 편집</strong><span class="muted" id="ref"></span>
-    <div class="grow"></div>
-
-    <!-- 단락 설교와 동일한 보이스 선택 UI -->
-    <div class="pill" id="voiceWrap">
-      <span class="muted">음성</span>
-      <select id="vsel" title="한국어 보이스 선택">
-        <option value="">브라우저 기본(ko-KR)</option>
-      </select>
-      <button id="vtest">시험</button>
-    </div>
-
-    <div class="pill">
-      <span class="muted">속도</span><input id="rate" class="ctrl" type="range" min="0.6" max="1.4" step="0.02" value="0.95">
-      <span class="muted">톤</span><input id="pitch" class="ctrl" type="range" min="0.6" max="1.4" step="0.02" value="1.00">
-    </div>
-    <button id="x">닫기</button>
-  </header>
-
-  <main>
-    <div class="row">
-      <input id="t" placeholder="설교 제목">
-      <textarea id="b" placeholder="설교 본문(텍스트)"></textarea>
-    </div>
-    <div class="row">
-      <input type="file" id="imgs" accept="image/*" multiple>
-      <div class="thumbs" id="th"></div>
-    </div>
-  </main>
-
-  <footer>
-    <span class="muted" id="date"></span><div class="grow"></div>
-    <button id="read" class="primary">낭독</button>
-    <button id="stop">중지</button>
-    <button class="danger" id="d">삭제</button>
-    <button class="primary" id="s">저장</button>
-  </footer>
-
-  <script>
-    // ===== 메타 수신(부모가 window.__WBPS_META__에 넣어줌)
-    const meta = window.__WBPS_META__ || { title:'', body:'', images:[], date:'', ref:'' };
-
-    // ===== 메타 주입
-    refEl.textContent='— '+(meta.ref||'');
-    dateEl.textContent=meta.date?('최근 저장: '+meta.date):'';
-    t.value=meta.title||'';
-    b.value=meta.body||'';
-    (meta.images||[]).forEach(src=>{const im=new Image();im.src=src;th.appendChild(im)});
-    
-    window.__WBPS_META_DEBUG__ = meta; // 디버깅 용이
-
-    // ===== 공통 유틸 (부모와 동일)
-    const VOICE_CHOICE_KEY='wbps.tts.choice.v2';
-    function stripBlankLines(s){return String(s||'').split(/\\r?\\n/).filter(l=>l.trim()!=='').join('\\n');}
-    function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
-
-    // --- 보이스 유틸 (부모와 동일)
-    function waitForVoices(timeout=1500){
-      return new Promise(resolve=>{
-        const have = speechSynthesis.getVoices?.(); if(have&&have.length) return resolve(have);
-        const t=setTimeout(()=>resolve(speechSynthesis.getVoices?.()||[]),timeout);
-        speechSynthesis.onvoiceschanged=()=>{clearTimeout(t);resolve(speechSynthesis.getVoices?.()||[]);}
-      });
-    }
-    function getKoreanVoices(all){
-      return (all||[]).filter(v=>{
-        const n=(v.name||'').toLowerCase(), l=(v.lang||'').toLowerCase();
-        return l.startsWith('ko')||n.includes('korean')||n.includes('한국')||n.includes('korea');
-      });
-    }
-    function presetsForSingleVoice(){
-      return [
-        {id:'preset-soft-low',  label:'프리셋 · 저음/느림', rate:0.85, pitch:0.85},
-        {id:'preset-soft-high', label:'프리셋 · 고음/느림', rate:0.90, pitch:1.20},
-        {id:'preset-fast',      label:'프리셋 · 빠름',     rate:1.20, pitch:1.05},
-        {id:'preset-bright',    label:'프리셋 · 밝게',     rate:1.05, pitch:1.25},
-        {id:'preset-radio',     label:'프리셋 · 라디오톤', rate:1.00, pitch:0.90},
-        {id:'preset-reading',   label:'프리셋 · 낭독체',   rate:0.95, pitch:1.00},
-      ];
-    }
-    function resolveVoiceChoice(){
-      try{ return JSON.parse(localStorage.getItem(VOICE_CHOICE_KEY)||'{"type":"default"}'); }
-      catch{ return {type:'default'}; }
-    }
-    function pickVoiceByURI(uri){ return (speechSynthesis.getVoices?.()||[]).find(v=>v.voiceURI===uri)||null; }
-    function applyVoice(u, rateCtl, pitchCtl){
-      const choice = resolveVoiceChoice();
-      const baseRate = parseFloat(rateCtl.value||'0.95');
-      const basePitch = parseFloat(pitchCtl.value||'1.0');
-      if(choice.type==='voice'){
-        const v = pickVoiceByURI(choice.uri);
-        if(v){u.voice=v;u.lang=v.lang;} else {u.lang='ko-KR';}
-        u.rate=baseRate; u.pitch=basePitch;
-      }else if(choice.type==='preset'){
-        u.lang='ko-KR';
-        u.rate = clamp((choice.rate??0.95)*baseRate/0.95,0.5,2);
-        u.pitch= clamp((choice.pitch??1.0)*basePitch/1.0,0,2);
-      }else{
-        u.lang='ko-KR';u.rate=baseRate;u.pitch=basePitch;
+        if (READER._wd){ clearTimeout(READER._wd); READER._wd = null; }
+        READER.playing = wasPlaying;
+        const moved = goToNextParagraphInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
+        if(!moved) return;
+        if (wasPlaying){
+          const cb = READER.scope?.querySelector?.('.keepReading');
+          if(cb){ cb.checked = READER.continuous; cb.disabled = !!READER.forced; }
+          READER.q   = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
+          READER.idx = 0;
+          bindKeepReading(READER.scope);
+          updateInlineSpeakBtn();
+          setTimeout(()=>{ try{ READER.synth && READER.synth.cancel(); }catch(_){}
+            playNextInQueueInline(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
+          }, 120);
+        }
       }
-    }
+    });
 
-    // ===== UI refs
-    const t=document.getElementById('t');
-    const b=document.getElementById('b');
-    const th=document.getElementById('th');
-    const imgs=document.getElementById('imgs');
-    const refEl=document.getElementById('ref');
-    const dateEl=document.getElementById('date');
-    const rate=document.getElementById('rate');
-    const pitch=document.getElementById('pitch');
-    const btnRead=document.getElementById('read');
-    const btnStop=document.getElementById('stop');
-    const btnSave=document.getElementById('s');
-    const btnDel=document.getElementById('d');
-    const btnClose=document.getElementById('x');
-    const vsel=document.getElementById('vsel');
-    const vtest=document.getElementById('vtest');
+    /* --------- Sermon Editor Popup (Fixed) --------- */
+    function openSermonEditorWindow(idx){
+      const map = getSermonMap();
+      const arr = map[CURRENT.paraId] || [];
+      const it  = arr[idx];
+      if(!it){ alert('편집할 설교를 찾을 수 없습니다.'); return; }
 
-    // ===== 보이스 셋업(부모와 동일)
-    (async function setupVoices(){
-      const all = await waitForVoices();
-      const kos = getKoreanVoices(all);
-      vsel.innerHTML='';
-      const def=document.createElement('option');
-      def.value=JSON.stringify({type:'default'});
-      def.textContent='브라우저 기본(ko-KR)';
-      vsel.appendChild(def);
-
-      if(kos.length>0){
-        const og=document.createElement('optgroup'); og.label='한국어 보이스';
-        kos.forEach(v=>{
-          const opt=document.createElement('option');
-          opt.value=JSON.stringify({type:'voice',uri:v.voiceURI});
-          opt.textContent=`${v.name} — ${v.lang}${v.localService?' (로컬)':''}`;
-          og.appendChild(opt);
-        });
-        vsel.appendChild(og);
-      }
-      if(kos.length<=1){
-        const pg=document.createElement('optgroup'); pg.label='스타일 프리셋';
-        presetsForSingleVoice().forEach(p=>{
-          const opt=document.createElement('option');
-          opt.value=JSON.stringify({type:'preset',rate:p.rate,pitch:p.pitch});
-          opt.textContent=p.label;
-          pg.appendChild(opt);
-        });
-        vsel.appendChild(pg);
-      }
-
-      const saved=localStorage.getItem(VOICE_CHOICE_KEY);
-      if(saved){
-        const idx=[...vsel.options].findIndex(o=>o.value===saved);
-        if(idx>=0) vsel.selectedIndex=idx;
-      }else{
-        localStorage.setItem(VOICE_CHOICE_KEY, vsel.value);
-      }
-      vsel.addEventListener('change',()=>localStorage.setItem(VOICE_CHOICE_KEY,vsel.value));
-      vtest.onclick = ()=>{
-        const u=new SpeechSynthesisUtterance('태초에 하나님이 천지를 창조하시니라.');
-        applyVoice(u,rate,pitch);
-        try{speechSynthesis.cancel();}catch(e){}
-        speechSynthesis.speak(u);
+      const meta = {
+        paraId: CURRENT.paraId,
+        ref: `${CURRENT.book} ${CURRENT.chap}장`,
+        title: it.title || '',
+        body:  it.body  || '',
+        images: it.images || [],
+        date: it.date || ''
       };
-    })();
 
-    // ===== 에디터 UX
-    b.addEventListener('blur',()=>{b.value=stripBlankLines(b.value);});
-    b.addEventListener('paste',()=>{setTimeout(()=>{const pos=b.selectionStart;b.value=stripBlankLines(b.value);if(typeof pos==='number'){b.setSelectionRange(pos,pos);} },0);});
+      const w = window.open('', '_blank', 'width=1100,height=800');
+      if(!w){ alert('팝업이 차단되었습니다. 브라우저 팝업을 허용해주세요.'); return; }
 
-    function fileToDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
-    imgs.addEventListener('change',async()=>{
-      const files=[...imgs.files||[]];
-      for(const f of files){const data=await fileToDataURL(f);const im=new Image();im.src=data;th.appendChild(im)}
-      imgs.value='';
-    });
+      // 안전한 데이터 전달
+      w.__WBPS_META__ = meta;
 
-    // ===== 낭독(부모와 같은 보이스 적용)
-    const synth=window.speechSynthesis||null;
-    function speakText(txt){
-      if(!synth){alert('이 브라우저는 음성합성을 지원하지 않습니다.');return}
-      try{synth.cancel()}catch(e){}
-      const u=new SpeechSynthesisUtterance(txt);
-      applyVoice(u,rate,pitch);
-      synth.speak(u);
+      const popupHTML = String.raw`<!DOCTYPE html><html lang="ko">
+      <head>
+        <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>설교 편집</title>
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Nanum+Myeongjo&display=swap" rel="stylesheet">
+        <style>
+          :root{--bg:#0f1115;--panel:#161922;--text:#e6e8ef;--muted:#9aa0ab;--border:#252a36;--accent:#6ea8fe;--danger:#ff6b6b}
+          *{box-sizing:border-box}html,body{height:100%}
+          body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Serif KR","Nanum Myeongjo",serif;display:grid;grid-template-rows:56px 1fr 56px;gap:8px}
+          header,footer{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--border)}
+          footer{border-top:1px solid var(--border);border-bottom:none}
+          .grow{flex:1 1 auto}
+          header strong{font-size:15px;letter-spacing:.01em}
+          main{padding:0 12px 12px}
+          .row{display:grid;gap:8px;margin-bottom:10px}
+          input[type="text"],textarea{width:100%;background:#161922;color:#e6e8ef;border:1px solid #2a3040;border-radius:10px;padding:12px 14px;box-shadow:0 6px 16px rgba(0,0,0,.18)}
+          input[type="text"]{font-weight:600;font-size:1.12rem;letter-spacing:.01em}
+          textarea{min-height:56vh;resize:vertical;line-height:1.9;letter-spacing:.015em;caret-color:var(--accent)}
+          .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+          .thumbs img{width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--border)}
+          .muted{color:var(--muted)}
+          button{background:color-mix(in hsl,var(--panel) 65%,black 10%);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px 12px;cursor:pointer;transition:border-color .15s,transform .04s}
+          button:hover{border-color:color-mix(in hsl,var(--border) 75%,var(--accent) 25%)}
+          button:active{transform:translateY(1px)}
+          .primary{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 78%,white 10%),color-mix(in srgb,var(--accent) 72%,black 22%));border-color:color-mix(in srgb,var(--accent) 70%,black 10%)}
+          .danger{border-color:var(--danger);color:#ffd7d7;background:transparent}
+          .pill{display:flex;gap:8px;align-items:center;border:1px solid var(--border);background:color-mix(in hsl,var(--panel) 80%,black 8%);padding:6px 8px;border-radius:10px}
+          .ctrl{appearance:none;width:140px;height:6px;border-radius:999px;background:#2a3040;outline:none}
+          @media (max-width:640px){textarea{min-height:48vh}}
+          input[type="text"]{font-family:"Noto Serif KR","Nanum Myeongjo",serif;font-weight:600;font-size:1.12rem;letter-spacing:.01em}
+          textarea{font-family:"Noto Serif KR","Nanum Myeongjo",serif;line-height:1.9;letter-spacing:.015em;caret-color:var(--accent)}
+          ::selection{background:rgba(110,168,254,.25)}
+          em,strong,b{color:#ffd66e;font-weight:600;font-style:normal}
+          blockquote{margin:12px 0;padding:10px 14px;border-left:3px solid var(--accent);color:#c0cad6;font-style:italic;background:rgba(255,255,255,.04);border-radius:8px}
+        </style>
+      </head>
+      <body>
+        <header>
+          <strong>설교 편집</strong><span class="muted" id="ref"></span>
+          <div class="grow"></div>
+          <div class="pill">
+            <span class="muted">속도</span><input id="rate" class="ctrl" type="range" min="0.6" max="1.4" step="0.02" value="0.95">
+            <span class="muted">톤</span><input id="pitch" class="ctrl" type="range" min="0.6" max="1.4" step="0.02" value="1.00">
+          </div>
+          <button id="x">닫기</button>
+        </header>
+        <main>
+          <div class="row">
+            <input id="t" placeholder="설교 제목">
+            <textarea id="b" placeholder="설교 본문(텍스트)"></textarea>
+          </div>
+          <div class="row">
+            <input type="file" id="imgs" accept="image/*" multiple>
+            <div class="thumbs" id="th"></div>
+          </div>
+        </main>
+        <footer>
+          <span class="muted" id="date"></span><div class="grow"></div>
+          <button id="read" class="primary">낭독</button>
+          <button id="stop">중지</button>
+          <button class="danger" id="d">삭제</button>
+          <button class="primary" id="s">저장</button>
+        </footer>
+        <script>
+          const meta = window.__WBPS_META__ || { title:'', body:'', images:[], date:'', ref:'' };
+
+          const t=document.getElementById('t');
+          const b=document.getElementById('b');
+          const th=document.getElementById('th');
+          const imgs=document.getElementById('imgs');
+          const ref=document.getElementById('ref');
+          const dateEl=document.getElementById('date');
+          const rate=document.getElementById('rate');
+          const pitch=document.getElementById('pitch');
+          const btnRead=document.getElementById('read');
+          const btnStop=document.getElementById('stop');
+
+          function stripBlankLines(s){return String(s||'').split(/\\r?\\n/).filter(l=>l.trim()!=='').join('\\n');}
+
+          ref.textContent='— '+(meta.ref||'');
+          dateEl.textContent=meta.date?('최근 저장: '+meta.date):'';
+          t.value=meta.title||'';
+          b.value=meta.body||'';
+          (meta.images||[]).forEach(src=>{const im=new Image();im.src=src;th.appendChild(im)});
+
+          b.addEventListener('blur',()=>{b.value=stripBlankLines(b.value);});
+          b.addEventListener('paste',()=>{setTimeout(()=>{const pos=b.selectionStart;b.value=stripBlankLines(b.value);if(typeof pos==='number'){b.setSelectionRange(pos,pos);} },0);});
+
+          function fileToDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
+          imgs.addEventListener('change',async()=>{const files=[...imgs.files||[]];for(const f of files){const data=await fileToDataURL(f);const im=new Image();im.src=data;th.appendChild(im)}imgs.value=''});
+
+          document.getElementById('s').onclick=()=>{b.value=stripBlankLines(b.value);const images=[...th.querySelectorAll('img')].map(i=>i.src);opener.postMessage({type:'sermon-save',title:(t.value||'').trim()||'(제목 없음)',body:(b.value||'').trim(),images},'*');window.close();};
+          document.getElementById('d').onclick=()=>{if(confirm('삭제할까요?')){opener.postMessage({type:'sermon-delete'},'*');window.close()}};document.getElementById('x').onclick=()=>window.close();
+
+          const synth=window.speechSynthesis||null;
+          function speakText(txt){if(!synth){alert('이 브라우저는 음성합성을 지원하지 않습니다.');return}try{synth.cancel()}catch(e){}const u=new SpeechSynthesisUtterance(txt);u.lang='ko-KR';u.rate=parseFloat(rate.value||'0.95');u.pitch=parseFloat(pitch.value||'1.0');synth.speak(u)}
+          btnRead.onclick=()=>{b.value=stripBlankLines(b.value);const txt=[(t.value||'').trim(),(b.value||'').replace(/\\n{2,}/g,'. ').replace(/\\n/g,' ').trim()].filter(Boolean).join('. ');if(!txt){alert('낭독할 내용이 없습니다.');return}speakText(txt);};
+          btnStop.onclick=()=>{try{synth&&synth.cancel()}catch(e){}};
+
+          window.addEventListener('keydown',e=>{if(e.key.toLowerCase()==='s'&&e.ctrlKey){e.preventDefault();btnRead.click()}});
+        <\/script>
+      </body></html>`;
+
+      w.document.open();
+      w.document.write(popupHTML);
+      w.document.close();
+
+      // 부모창으로 저장/삭제 결과 수신
+      const onMsg = (ev)=>{
+        const data = ev?.data||{};
+        if(!data.type) return;
+
+        const map2 = getSermonMap();
+        const arr2 = map2[CURRENT.paraId] || [];
+
+        if(data.type==='sermon-save'){
+          const now = new Date();
+          const date = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+          if(arr2[idx]){ arr2[idx] = { ...arr2[idx], title: data.title, body: data.body, images: data.images, date }; }
+          map2[CURRENT.paraId] = arr2; setSermonMap(map2);
+          status('설교가 저장되었습니다.');
+          renderSermonList();
+          window.removeEventListener('message', onMsg);
+        }
+
+        if(data.type==='sermon-delete'){
+          if(arr2[idx]) arr2.splice(idx,1);
+          map2[CURRENT.paraId] = arr2; setSermonMap(map2);
+          status('설교가 삭제되었습니다.');
+          renderSermonList();
+          window.removeEventListener('message', onMsg);
+        }
+      };
+      window.addEventListener('message', onMsg);
     }
-    btnRead.onclick=()=>{
-      b.value=stripBlankLines(b.value);
-      const txt=[(t.value||'').trim(),(b.value||'').replace(/\\n{2,}/g,'. ').replace(/\\n/g,' ').trim()].filter(Boolean).join('. ');
-      if(!txt){alert('낭독할 내용이 없습니다.');return}
-      speakText(txt);
-    };
-    btnStop.onclick=()=>{try{synth&&synth.cancel()}catch(e){}};
-
-    // ===== 저장/삭제/닫기 (부모창으로 postMessage)
-    btnSave.onclick=()=>{
-      b.value=stripBlankLines(b.value);
-      const images=[...th.querySelectorAll('img')].map(i=>i.src);
-      opener.postMessage({type:'sermon-save',title:(t.value||'').trim()||'(제목 없음)',body:(b.value||'').trim(),images},'*');
-      window.close();
-    };
-    btnDel.onclick=()=>{
-      if(confirm('삭제할까요?')){
-        opener.postMessage({type:'sermon-delete'},'*');
-        window.close();
-      }
-    };
-    btnClose.onclick=()=>window.close();
-
-    // ===== 단축키 (메인과 유사 UX)
-    window.addEventListener('keydown',e=>{
-      const key=e.key.toLowerCase();
-      const ctrl=e.ctrlKey||e.metaKey; // Mac ⌘ 지원
-
-      if(ctrl && key==='s'){ // Ctrl/Cmd+S => 저장
-        e.preventDefault();
-        btnSave.click();
-        return;
-      }
-      if(ctrl && key==='enter'){ // Ctrl/Cmd+Enter => 저장
-        e.preventDefault();
-        btnSave.click();
-        return;
-      }
-      if(key==='escape'){ // Esc => 닫기
-        e.preventDefault();
-        window.close();
-        return;
-      }
-    });
-  </script>
-</body></html>`;
-
-  // 부모창 응답 수신
-  const onMsg = (ev)=>{
-    const data = ev?.data||{};
-    if(!data.type) return;
-    const map = getSermonMap();
-    const arr = map[CURRENT.paraId] || [];
-
-    if(data.type==='sermon-save'){
-      const now = new Date();
-      const date = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-      if(arr[idx]) arr[idx] = { ...arr[idx], title: data.title, body: data.body, images: data.images, date };
-      map[CURRENT.paraId] = arr; setSermonMap(map);
-      status('설교가 저장되었습니다.');
-      renderSermonList();
-      window.removeEventListener('message', onMsg);
-    }
-    if(data.type==='sermon-delete'){
-      if(arr[idx]) arr.splice(idx,1);
-      map[CURRENT.paraId] = arr; setSermonMap(map);
-      status('설교가 삭제되었습니다.');
-      renderSermonList();
-      window.removeEventListener('message', onMsg);
-    }
-  };
-  window.addEventListener('message', onMsg);
-}
-
-
   </script>
 </body>
 </html>
