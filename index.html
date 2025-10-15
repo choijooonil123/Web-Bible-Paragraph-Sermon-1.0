@@ -1180,6 +1180,9 @@ function openSermonEditorWindow(idx){
 
   // ★ 팝업 window 객체에 직접 전달 (HTML에 JSON 삽입 X)
   w.__WBPS_META__ = meta;
+  w.document.open();
+  w.document.write(popupHTML);
+  w.document.close();
   
 const popupHTML = String.raw`<!DOCTYPE html><html lang="ko">
 <head>
@@ -1450,11 +1453,6 @@ const popupHTML = String.raw`<!DOCTYPE html><html lang="ko">
     });
   </script>
 </body></html>`;
-
-
-  w.document.open();
-  w.document.write(popupHTML);
-  w.document.close();
 
   // 부모창 응답 수신
   const onMsg = (ev)=>{
