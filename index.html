@@ -1175,14 +1175,15 @@ function openSermonEditorWindow(idx){
     date: it.date || ''
   };
 
-  const w = window.open('', '_blank', 'width=1100,height=800');
-  if(!w){ alert('팝업이 차단되었습니다. 브라우저 팝업을 허용해주세요.'); return; }
+const w = window.open('', '_blank', 'width=1100,height=800');
+if (!w) { alert('팝업이 차단되었습니다. 브라우저 팝업을 허용해주세요.'); return; }
 
-  // ★ 팝업 window 객체에 직접 전달 (HTML에 JSON 삽입 X)
-  w.__WBPS_META__ = meta;
-  w.document.open();
-  w.document.write(popupHTML);
-  w.document.close();
+// ✅ 이 줄이 “제목/본문 주입”의 핵심입니다.
+w.__WBPS_META__ = meta;
+
+w.document.open();
+w.document.write(popupHTML);
+w.document.close();
   
 const popupHTML = String.raw`<!DOCTYPE html><html lang="ko">
 <head>
@@ -1263,6 +1264,14 @@ const popupHTML = String.raw`<!DOCTYPE html><html lang="ko">
   <script>
     // ===== 메타 수신(부모가 window.__WBPS_META__에 넣어줌)
     const meta = window.__WBPS_META__ || { title:'', body:'', images:[], date:'', ref:'' };
+
+    // ===== 메타 주입
+    refEl.textContent='— '+(meta.ref||'');
+    dateEl.textContent=meta.date?('최근 저장: '+meta.date):'';
+    t.value=meta.title||'';
+    b.value=meta.body||'';
+    (meta.images||[]).forEach(src=>{const im=new Image();im.src=src;th.appendChild(im)});
+    
     window.__WBPS_META_DEBUG__ = meta; // 디버깅 용이
 
     // ===== 공통 유틸 (부모와 동일)
@@ -1332,13 +1341,6 @@ const popupHTML = String.raw`<!DOCTYPE html><html lang="ko">
     const btnClose=document.getElementById('x');
     const vsel=document.getElementById('vsel');
     const vtest=document.getElementById('vtest');
-
-    // ===== 메타 주입
-    refEl.textContent='— '+(meta.ref||'');
-    dateEl.textContent=meta.date?('최근 저장: '+meta.date):'';
-    t.value=meta.title||'';
-    b.value=meta.body||'';
-    (meta.images||[]).forEach(src=>{const im=new Image();im.src=src;th.appendChild(im)});
 
     // ===== 보이스 셋업(부모와 동일)
     (async function setupVoices(){
