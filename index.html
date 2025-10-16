@@ -643,34 +643,57 @@
     function goToNextParagraphInline(book, chap, idx){
       const chObj = BIBLE.books[book][chap];
       const booksEls = [...treeEl.children];
-      const bIdx = Object.keys(BIBLE.books).indexOf(book);
-      const bookEl = booksEls[bIdx]; if(!bookEl) return false;
+    
+      // 현재 책/장 요소 찾기
+      const bookNames = Object.keys(BIBLE.books);
+      const bIdx = bookNames.indexOf(book);
+      const bookEl = booksEls[bIdx];
+      if(!bookEl) return false;
+    
       const chaptersEls = bookEl.querySelectorAll(':scope > .chapters > details');
       const chapNums = Object.keys(BIBLE.books[book]).map(n=>parseInt(n,10)).sort((a,b)=>a-b);
-      const chPos = chapNums.indexOf(ch);
-      const chapEl = chaptersEls[chPos]; if(!chapEl) return false;
+    
+      // ⛔ 버그: 기존 코드에 ch를 사용 → chap로 교체
+      const chPos = chapNums.indexOf(chap);
+      const chapEl = chaptersEls[chPos];
+      if(!chapEl) return false;
+    
       const paraEls = chapEl.querySelectorAll(':scope > .paras > details.para');
+    
+      // 현재 단락 버튼 텍스트 원복
       if (READER.btn) READER.btn.textContent = '낭독';
-      if(idx < chObj.paras.length-1){
-        const nextEl = paraEls[idx+1];
+    
+      // 1) 같은 장의 다음 단락
+      if (idx < chObj.paras.length - 1){
+        const nextEl = paraEls[idx + 1];
         if(nextEl){
-          chapEl.open = true; nextEl.open = true;
-          CURRENT.book = book; CURRENT.chap = chap; CURRENT.paraIdx = idx+1;
+          chapEl.open = true;
+          nextEl.open = true;
+          CURRENT.book = book;
+          CURRENT.chap = chap;
+          CURRENT.paraIdx = idx + 1;
           READER.scope = nextEl;
           READER.btn = nextEl.querySelector('.speakBtn');
           if (READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독';
           return true;
         }
       }
-      if(chPos >= 0 && chPos < chapNums.length-1){
-        const nextChap = chapNums[chPos+1];
-        const nextChapEl = chaptersEls[chPos+1];
+    
+      // 2) 다음 장의 첫 단락
+      if (chPos >= 0 && chPos < chapNums.length - 1){
+        const nextChap = chapNums[chPos + 1];
+        const nextChapEl = chaptersEls[chPos + 1];
         if(nextChapEl){
-          const nextParas = BIBLE.books[book][nextChap].paras||[];
+          const nextParas = (BIBLE.books[book][nextChap].paras || []);
           if(nextParas.length){
             const nextParaEl = nextChapEl.querySelector(':scope > .paras > details.para');
-            nextChapEl.open = true; if(nextParaEl) nextParaEl.open = true;
-            CURRENT.book = book; CURRENT.chap = nextChap; CURRENT.paraIdx = 0;
+            nextChapEl.open = true;
+            if(nextParaEl) nextParaEl.open = true;
+    
+            CURRENT.book = book;
+            CURRENT.chap = nextChap;
+            CURRENT.paraIdx = 0;
+    
             READER.scope = nextParaEl;
             READER.btn = nextParaEl?.querySelector('.speakBtn') || null;
             if (READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독';
@@ -678,18 +701,25 @@
           }
         }
       }
-      const bookNames = Object.keys(BIBLE.books);
-      const bPos = bookNames.indexOf(book);
-      if(bPos >= 0 && bPos < bookNames.length-1){
-        const nextBook = bookNames[bPos+1];
-        const nextBookEl = booksEls[bPos+1];
+    
+      // 3) 다음 책의 첫 장 첫 단락
+      const bPos = bIdx;
+      if (bPos >= 0 && bPos < bookNames.length - 1){
+        const nextBook = bookNames[bPos + 1];
+        const nextBookEl = booksEls[bPos + 1];
         if(nextBookEl){
           const firstChap = Math.min(...Object.keys(BIBLE.books[nextBook]).map(n=>parseInt(n,10)));
           const nextChapEl = nextBookEl.querySelector(':scope > .chapters > details');
           const nextParaEl = nextChapEl?.querySelector(':scope > .paras > details.para');
           if(nextParaEl){
-            nextBookEl.open = true; nextChapEl.open = true; nextParaEl.open = true;
-            CURRENT.book = nextBook; CURRENT.chap = firstChap; CURRENT.paraIdx = 0;
+            nextBookEl.open = true;
+            nextChapEl.open = true;
+            nextParaEl.open = true;
+    
+            CURRENT.book = nextBook;
+            CURRENT.chap = firstChap;
+            CURRENT.paraIdx = 0;
+    
             READER.scope = nextParaEl;
             READER.btn = nextParaEl.querySelector('.speakBtn');
             if (READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독';
@@ -697,8 +727,10 @@
           }
         }
       }
+    
       return false;
     }
+
 
     /* --------- Sermon / Context Editors --------- */
     function getSermonMap(){ try{ return JSON.parse(localStorage.getItem(STORAGE_SERMON)||'{}'); }catch{ return {}; } }
