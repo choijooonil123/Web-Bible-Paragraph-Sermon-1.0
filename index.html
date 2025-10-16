@@ -309,7 +309,7 @@
 
     let BIBLE = null;
     let CURRENT = { book:null, chap:null, paraIdx:null, paraId:null };
-    let READER = { playing:false, q:[], idx:0, synth:window.speechSynthesis||null, scope:null, btn:null, continuous:false, forced:false };
+    let READER = { playing:false, q:[], idx:0, synth:window.speechSynthesis||null, scope:null, btn:null, continuous:false };
     let EDITOR_READER = { playing:false, u:null, synth:window.speechSynthesis||null };
 
     /* --------- Boot --------- */
@@ -569,14 +569,8 @@
       const cb = scope.querySelector('.keepReading');
       if(!cb) return;
       cb.checked  = READER.continuous;
-      cb.disabled = !!READER.forced;
-      cb.onchange = ()=>{
-        if(READER.forced){
-          cb.checked = true;
-          return;
-        }
-        READER.continuous = cb.checked;
-      };
+      cb.disabled = false;                   // 항상 조작 가능
+      cb.onchange = ()=>{ READER.continuous = cb.checked; };
     }
     function speakVerseItemInScope(item, scope, onend){
       if(!READER.synth) return;
@@ -602,8 +596,7 @@
       if(!READER.synth) return alert('이 브라우저는 음성합성을 지원하지 않습니다.');
       const sameScope = READER.playing && READER.scope === paraDetailsEl;
       if(READER.playing && sameScope){ stopSpeakInline(); return; }
-      READER.forced = true;
-      READER.continuous = true;
+      READER.continuous = true;   // 기본을 ON으로 시작(원하면 false로 바꾸세요)
       READER.q = buildQueueFrom(book, chap, idx);
       READER.idx = 0;
       READER.playing = true;
@@ -619,7 +612,7 @@
       if(READER.idx >= READER.q.length){
         if(READER.continuous && goToNextParagraphInline(book, chap, idx)){
           const nextCb = READER.scope?.querySelector?.('.keepReading');
-          if(nextCb){ nextCb.checked = READER.continuous; nextCb.disabled = !!READER.forced; }
+          if(nextCb){ nextCb.checked = READER.continuous; nextCb.disabled = false; }
           READER.q = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
           READER.idx = 0;
           bindKeepReading(READER.scope);
@@ -635,7 +628,6 @@
     }
     function stopSpeakInline(){
       READER.playing = false;
-      READER.forced  = false;
       try{ READER.synth && READER.synth.cancel(); }catch(e){}
       if (READER._wd){ clearTimeout(READER._wd); READER._wd = null; }
       if(READER.scope){
@@ -646,6 +638,7 @@
       updateInlineSpeakBtn();
       READER.scope = null; READER.btn = null;
     }
+
     function updateInlineSpeakBtn(){ if(READER.btn) READER.btn.textContent = READER.playing ? '중지' : '낭독'; }
     function goToNextParagraphInline(book, chap, idx){
       const chObj = BIBLE.books[book][chap];
@@ -926,7 +919,7 @@
         if(!moved) return;
         if (wasPlaying){
           const cb = READER.scope?.querySelector?.('.keepReading');
-          if(cb){ cb.checked = READER.continuous; cb.disabled = !!READER.forced; }
+          if(cb){ cb.checked = READER.continuous; cb.disabled = false; }
           READER.q   = buildQueueFrom(CURRENT.book, CURRENT.chap, CURRENT.paraIdx);
           READER.idx = 0;
           bindKeepReading(READER.scope);
